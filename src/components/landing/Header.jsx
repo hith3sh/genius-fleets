@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { User } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
 const logoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png";
@@ -12,17 +12,6 @@ export default function Header() {
     document.title = "Al Jisr Car Rentals - Premium Car Rentals in Dubai";
   }, []);
 
-  const handleLogin = async () => {
-    try {
-      // Flag that a login process is starting.
-      sessionStorage.setItem('login_in_progress', 'true');
-      await User.login();
-    } catch (error) {
-      console.error("Login failed:", error);
-      // Clear the flag on failure
-      sessionStorage.removeItem('login_in_progress');
-    }
-  };
 
   const navLinks = [
     { name: 'Home', href: '#home' },
@@ -50,10 +39,12 @@ export default function Header() {
               </a>
             ))}
           </nav>
-          <Button onClick={handleLogin} className="bg-red-600 hover:bg-red-700 text-white rounded-full">
-            <LogIn className="w-4 h-4 mr-2" />
-            Sign In / Sign Up
-          </Button>
+          <Link to="/login">
+            <Button className="bg-red-600 hover:bg-red-700 text-white rounded-full">
+              <LogIn className="w-4 h-4 mr-2" />
+              Sign In / Sign Up
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

@@ -49,6 +49,36 @@ CSV_TABLE_MAPPING = {
 # Fields to exclude from Base44 exports
 EXCLUDE_FIELDS = {'id', 'created_date', 'updated_date', 'created_by_id', 'created_by', 'is_sample'}
 
+# Column name mappings for tables where CSV columns don't match database columns
+COLUMN_MAPPINGS = {
+    'invoice': {
+        'amount': 'rental_amount',
+        'tax': 'vat_amount'
+    }
+}
+
+# Special processing for tables that need calculated fields
+def add_calculated_fields(table_name, processed_row):
+    """Add calculated fields for specific tables"""
+    if table_name == 'invoice':
+        # Handle NULL/empty rental_amount and vat_amount - set defaults
+        rental_amount_raw = processed_row.get('rental_amount')
+        vat_amount_raw = processed_row.get('vat_amount')
+        
+        # Convert to float, defaulting to 0.0 for NULL/empty values
+        rental_amount = float(rental_amount_raw) if rental_amount_raw and rental_amount_raw != '' else 0.0
+        vat_amount = float(vat_amount_raw) if vat_amount_raw and vat_amount_raw != '' else 0.0
+        
+        # Set the processed values (ensuring no NULLs)
+        processed_row['rental_amount'] = rental_amount
+        processed_row['vat_amount'] = vat_amount
+        processed_row['subtotal'] = rental_amount
+        processed_row['total_amount'] = rental_amount + vat_amount
+        processed_row['vat_enabled'] = True
+        processed_row['vat_rate'] = 5  # Default VAT rate
+    
+    return processed_row
+
 # Foreign key mappings - which fields reference other tables
 FOREIGN_KEY_MAPPINGS = {
     'booking': {
@@ -128,7 +158,7 @@ def clean_value(value):
         return None
     return str(value).strip()
 
-def convert_value(value, conversion_type):
+def convert_value(value, conversion_type, table_name=None, field_name=None):
     """Convert value based on type"""
     if value is None or value == '':
         return None
@@ -165,6 +195,12 @@ def convert_value(value, conversion_type):
                 except:
                     return {} if value.startswith('{') else []
             return {}
+        elif conversion_type == 'enum_mapping':
+            # Map old enum values to new ones
+            if table_name in ENUM_MAPPINGS and field_name in ENUM_MAPPINGS[table_name]:
+                mapping = ENUM_MAPPINGS[table_name][field_name]
+                return mapping.get(value, value.lower())  # Default to lowercase if not found
+            return value.lower()
         elif conversion_type == 'date_iso':
             if re.match(r'^\d{4}-\d{2}-\d{2}', value):
                 return value[:10]
@@ -186,7 +222,7 @@ def convert_value(value, conversion_type):
     except:
         return None
 
-def escape_sql_value(value):
+def escape_sql_value(value, field_type=None):
     """Escape SQL values properly"""
     if value is None:
         return 'NULL'
@@ -195,16 +231,35 @@ def escape_sql_value(value):
     elif isinstance(value, (int, float)):
         return str(value)
     elif isinstance(value, list):
-        if not value:
-            return 'ARRAY[]::TEXT[]'
-        escaped_items = [f"'{str(item).replace(chr(39), chr(39)+chr(39))}'" for item in value]
-        return f"ARRAY[{', '.join(escaped_items)}]"
+        # If field_type is json_object, treat list as JSONB instead of PostgreSQL array
+        if field_type == 'json_object':
+            json_str = json.dumps(value).replace("'", "''")
+            return f"'{json_str}'::jsonb"
+        else:
+            if not value:
+                return 'ARRAY[]::TEXT[]'
+            escaped_items = [f"'{str(item).replace(chr(39), chr(39)+chr(39))}'" for item in value]
+            return f"ARRAY[{', '.join(escaped_items)}]"
     elif isinstance(value, dict):
         json_str = json.dumps(value).replace("'", "''")
         return f"'{json_str}'::jsonb"
     else:
         escaped = str(value).replace("'", "''")
         return f"'{escaped}'"
+
+# Valid enum values for specific fields
+ENUM_MAPPINGS = {
+    'invoice': {
+        'status': {
+            'Unpaid': 'Sent',  # Map Unpaid to Sent (invoice sent but not yet paid)
+            'Paid': 'Paid', 
+            'Draft': 'Draft',
+            'Sent': 'Sent',
+            'Overdue': 'Overdue',
+            'Cancelled': 'Cancelled'
+        }
+    }
+}
 
 # Field type mappings
 FIELD_MAPPINGS = {
@@ -227,6 +282,9 @@ FIELD_MAPPINGS = {
     'marketing_campaign': {
         'audience_filters': 'json_object',
         'stats': 'json_object'
+    },
+    'invoice': {
+        'status': 'enum_mapping'
     },
     'vehicle': {
         'year': 'integer',
@@ -283,29 +341,37 @@ def process_csv_data(csv_path, table_name):
                     
                 cleaned_value = clean_value(value)
                 
+                # Apply column name mapping if needed
+                mapped_col = col
+                if table_name in COLUMN_MAPPINGS and col in COLUMN_MAPPINGS[table_name]:
+                    mapped_col = COLUMN_MAPPINGS[table_name][col]
+                
                 # Handle foreign key references
                 if table_name in FOREIGN_KEY_MAPPINGS and col in FOREIGN_KEY_MAPPINGS[table_name]:
                     referenced_table = FOREIGN_KEY_MAPPINGS[table_name][col]
                     if cleaned_value:
                         # Convert old ID to new UUID
-                        processed_row[col] = generate_uuid_for_old_id(referenced_table, cleaned_value)
+                        processed_row[mapped_col] = generate_uuid_for_old_id(referenced_table, cleaned_value)
                     else:
-                        processed_row[col] = None
+                        processed_row[mapped_col] = None
                 else:
                     # Apply field-specific conversion
                     if table_name in FIELD_MAPPINGS and col in FIELD_MAPPINGS[table_name]:
                         conversion_type = FIELD_MAPPINGS[table_name][col]
-                        converted_value = convert_value(cleaned_value, conversion_type)
+                        converted_value = convert_value(cleaned_value, conversion_type, table_name, col)
                     else:
                         converted_value = cleaned_value
                     
-                    processed_row[col] = converted_value
+                    processed_row[mapped_col] = converted_value
+            
+            # Add calculated fields if needed
+            processed_row = add_calculated_fields(table_name, processed_row)
             
             rows.append(processed_row)
     
     return rows
 
-def generate_insert_statement(table_name, rows):
+def generate_insert_statement(table_name, rows, all_data=None):
     """Generate SQL INSERT statement for a table"""
     if not rows:
         return ""
@@ -315,13 +381,59 @@ def generate_insert_statement(table_name, rows):
     
     # For primary tables (customer, vehicle, etc.), we need to include the id column
     has_foreign_keys = table_name in FOREIGN_KEY_MAPPINGS and FOREIGN_KEY_MAPPINGS[table_name]
-    is_primary_table = table_name in ['customer', 'vehicle', 'employee', 'lead', 'shift', 'user_access']
+    is_primary_table = table_name in ['customer', 'vehicle', 'employee', 'lead', 'shift', 'user_access', 'booking', 'quotation', 'invoice', 'payment', 'expense', 'asset', 'inventory_part', 'maintenance_log', 'incident_log', 'vehicle_contract', 'car_image', 'staff_document', 'legal_document', 'ai_document_processing', 'corporate_client', 'interaction_log', 'vehicle_document', 'customer_document', 'attendance', 'payroll', 'leave_request']
     
     if is_primary_table:
         columns = ['id'] + columns
     
     if not columns:
         return ""
+    
+    # Special handling for interaction_log - filter out rows with invalid customer references
+    if table_name == 'interaction_log' and all_data:
+        # Get all customer IDs that exist in the customer data
+        valid_customer_ids = set()
+        if 'customer' in all_data:
+            for customer_row in all_data['customer']:
+                if customer_row.get('uuid'):
+                    valid_customer_ids.add(customer_row['uuid'])
+        
+        # Filter out rows with invalid customer_id references
+        filtered_rows = []
+        for row in rows:
+            customer_id = row.get('customer_id')
+            if customer_id in valid_customer_ids:
+                filtered_rows.append(row)
+            else:
+                print(f"  ⚠️  Skipping interaction_log row with invalid customer_id: {customer_id}")
+        
+        rows = filtered_rows
+        
+        if not rows:
+            return ""
+    
+    # Validate foreign key references for invoice table
+    if table_name == 'invoice' and all_data:
+        # Get all valid booking IDs
+        valid_booking_ids = set()
+        if 'booking' in all_data:
+            for booking_row in all_data['booking']:
+                if booking_row.get('uuid'):
+                    valid_booking_ids.add(booking_row['uuid'])
+        
+        # Filter out rows with invalid booking_id references
+        filtered_rows = []
+        for row in rows:
+            booking_id = row.get('booking_id')
+            if booking_id is None or booking_id in valid_booking_ids:
+                filtered_rows.append(row)
+            else:
+                print(f"  ⚠️  Skipping invoice row with invalid booking_id: {booking_id}")
+        
+        rows = filtered_rows
+        
+        if not rows:
+            return ""
     
     sql_parts = [f"-- Import data for {table_name}"]
     sql_parts.append(f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES")
@@ -334,7 +446,10 @@ def generate_insert_statement(table_name, rows):
                 # Use the generated UUID for this record
                 values.append(f"'{row['uuid']}'")
             else:
-                values.append(escape_sql_value(row.get(col)))
+                field_type = None
+                if table_name in FIELD_MAPPINGS and col in FIELD_MAPPINGS[table_name]:
+                    field_type = FIELD_MAPPINGS[table_name][col]
+                values.append(escape_sql_value(row.get(col), field_type))
         value_rows.append(f"  ({', '.join(values)})")
     
     sql_parts.append(',\n'.join(value_rows))
@@ -407,7 +522,7 @@ def main():
             if table_name and table_name in all_data:
                 data = all_data[table_name]
                 if data:
-                    sql = generate_insert_statement(table_name, data)
+                    sql = generate_insert_statement(table_name, data, all_data)
                     f.write(sql + '\n\n')
                     total_records += len(data)
         

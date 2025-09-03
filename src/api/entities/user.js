@@ -20,20 +20,28 @@ class User extends BaseEntity {
       try {
         const { data, error: accessError } = await supabase
           .from('user_access')
-          .select('*')
+          .select('user_email, accessible_modules')
           .eq('user_email', user.email)
-          .single();
+          .maybeSingle();
         
-        if (accessError && accessError.code !== 'PGRST116') {
-          // PGRST116 is "no rows returned" which is fine - user might not have explicit access yet
+        if (accessError) {
           console.warn('Error fetching user access:', accessError);
+          // Return basic user info if access info can't be retrieved
+          return {
+            id: user.id,
+            email: user.email,
+            role: 'User',
+            accessible_modules: [],
+            created_at: user.created_at,
+            last_sign_in_at: user.last_sign_in_at
+          };
         }
 
         // Return user with access modules if available
         return {
           id: user.id,
           email: user.email,
-          role: data?.role || 'User',
+          role: 'User', // Default role since we're not storing it in DB
           accessible_modules: data?.accessible_modules || [],
           created_at: user.created_at,
           last_sign_in_at: user.last_sign_in_at
@@ -45,7 +53,9 @@ class User extends BaseEntity {
           id: user.id,
           email: user.email,
           role: 'User',
-          accessible_modules: []
+          accessible_modules: [],
+          created_at: user.created_at,
+          last_sign_in_at: user.last_sign_in_at
         };
       }
     }
@@ -64,13 +74,12 @@ class User extends BaseEntity {
     if (error) throw error;
     
     // If user access data is provided, create a record in user_access
-    if (userData.role || userData.accessible_modules) {
+    if (userData.accessible_modules) {
       try {
         await supabase
           .from('user_access')
           .insert([{
             user_email: userData.email,
-            role: userData.role || 'User',
             accessible_modules: userData.accessible_modules || []
           }]);
       } catch (err) {

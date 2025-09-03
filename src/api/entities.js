@@ -1,69 +1,71 @@
-import { base44 } from './base44Client';
+// Import Supabase entities and User class
+import {
+  UserAccess as SupabaseUserAccess,
+  Customer as SupabaseCustomer,
+  Vehicle as SupabaseVehicle,
+  Booking as SupabaseBooking,
+  VehicleDocument as SupabaseVehicleDocument,
+  Employee as SupabaseEmployee,
+  Shift as SupabaseShift,
+  Attendance as SupabaseAttendance,
+  Payroll as SupabasePayroll,
+  LeaveRequest as SupabaseLeaveRequest,
+  Deduction as SupabaseDeduction,
+  Lead as SupabaseLead,
+  Quotation as SupabaseQuotation,
+  MarketingCampaign as SupabaseMarketingCampaign,
+  CorporateClient as SupabaseCorporateClient,
+  InteractionLog as SupabaseInteractionLog,
+  Invoice as SupabaseInvoice,
+  Payment as SupabasePayment,
+  Expense as SupabaseExpense,
+  Asset as SupabaseAsset,
+  InventoryPart as SupabaseInventoryPart,
+  MaintenanceLog as SupabaseMaintenanceLog,
+  IncidentLog as SupabaseIncidentLog,
+  VehicleContract as SupabaseVehicleContract,
+  FineLog as SupabaseFineLog,
+  CustomerDocument as SupabaseCustomerDocument,
+  CarImage as SupabaseCarImage,
+  Agreement as SupabaseAgreement,
+  StaffDocument as SupabaseStaffDocument,
+  LegalDocument as SupabaseLegalDocument,
+  AIDocumentProcessing as SupabaseAIDocumentProcessing
+} from './supabaseEntities';
+import SupabaseUser from './entities/user';
 
+// Export Supabase entities
+export const UserAccess = SupabaseUserAccess;
+export const Customer = SupabaseCustomer;
+export const Vehicle = SupabaseVehicle;
+export const Booking = SupabaseBooking;
+export const VehicleDocument = SupabaseVehicleDocument;
+export const Employee = SupabaseEmployee;
+export const Shift = SupabaseShift;
+export const Attendance = SupabaseAttendance;
+export const Payroll = SupabasePayroll;
+export const LeaveRequest = SupabaseLeaveRequest;
+export const Deduction = SupabaseDeduction;
+export const Lead = SupabaseLead;
+export const Quotation = SupabaseQuotation;
+export const MarketingCampaign = SupabaseMarketingCampaign;
+export const CorporateClient = SupabaseCorporateClient;
+export const InteractionLog = SupabaseInteractionLog;
+export const Invoice = SupabaseInvoice;
+export const Payment = SupabasePayment;
+export const Expense = SupabaseExpense;
+export const Asset = SupabaseAsset;
+export const InventoryPart = SupabaseInventoryPart;
+export const MaintenanceLog = SupabaseMaintenanceLog;
+export const IncidentLog = SupabaseIncidentLog;
+export const VehicleContract = SupabaseVehicleContract;
+export const FineLog = SupabaseFineLog;
+export const CustomerDocument = SupabaseCustomerDocument;
+export const CarImage = SupabaseCarImage;
+export const Agreement = SupabaseAgreement;
+export const StaffDocument = SupabaseStaffDocument;
+export const LegalDocument = SupabaseLegalDocument;
+export const AIDocumentProcessing = SupabaseAIDocumentProcessing;
 
-export const UserAccess = base44.entities.UserAccess;
-
-export const Customer = base44.entities.Customer;
-
-export const Vehicle = base44.entities.Vehicle;
-
-export const Booking = base44.entities.Booking;
-
-export const VehicleDocument = base44.entities.VehicleDocument;
-
-export const Employee = base44.entities.Employee;
-
-export const Shift = base44.entities.Shift;
-
-export const Attendance = base44.entities.Attendance;
-
-export const Payroll = base44.entities.Payroll;
-
-export const LeaveRequest = base44.entities.LeaveRequest;
-
-export const Deduction = base44.entities.Deduction;
-
-export const Lead = base44.entities.Lead;
-
-export const Quotation = base44.entities.Quotation;
-
-export const MarketingCampaign = base44.entities.MarketingCampaign;
-
-export const CorporateClient = base44.entities.CorporateClient;
-
-export const InteractionLog = base44.entities.InteractionLog;
-
-export const Invoice = base44.entities.Invoice;
-
-export const Payment = base44.entities.Payment;
-
-export const Expense = base44.entities.Expense;
-
-export const Asset = base44.entities.Asset;
-
-export const InventoryPart = base44.entities.InventoryPart;
-
-export const MaintenanceLog = base44.entities.MaintenanceLog;
-
-export const IncidentLog = base44.entities.IncidentLog;
-
-export const VehicleContract = base44.entities.VehicleContract;
-
-export const FineLog = base44.entities.FineLog;
-
-export const CustomerDocument = base44.entities.CustomerDocument;
-
-export const CarImage = base44.entities.CarImage;
-
-export const Agreement = base44.entities.Agreement;
-
-export const StaffDocument = base44.entities.StaffDocument;
-
-export const LegalDocument = base44.entities.LegalDocument;
-
-export const AIDocumentProcessing = base44.entities.AIDocumentProcessing;
-
-
-
-// auth sdk:
-export const User = base44.auth;
+// Export Supabase User authentication
+export const User = SupabaseUser;

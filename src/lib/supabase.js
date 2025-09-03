@@ -17,6 +17,9 @@ export const auth = {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: undefined // Disable email redirect for OTP flow
+      }
     });
     return { data, error };
   },
@@ -75,6 +78,25 @@ export const auth = {
   signInWithOAuth: async (provider) => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
+    });
+    return { data, error };
+  },
+
+  // Verify OTP for email confirmation
+  verifyOtp: async (email, token, type = 'signup') => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type
+    });
+    return { data, error };
+  },
+
+  // Resend OTP
+  resendOtp: async (email, type = 'signup') => {
+    const { data, error } = await supabase.auth.resend({
+      type,
+      email
     });
     return { data, error };
   },

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../lib/supabase';
-import { User } from '../api/entities';
+import User from '../api/entities/user';
 
 // Create auth context
 const AuthContext = createContext();
@@ -109,7 +109,8 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
-      await auth.resetPassword(email);
+      const { error } = await auth.resetPassword(email);
+      if (error) throw error;
       return { success: true };
     } catch (err) {
       console.error('Reset password error:', err);
