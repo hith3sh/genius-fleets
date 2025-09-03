@@ -1,0 +1,4 @@
+employee_id,leave_type,start_date,end_date,reason,status,manager_comment,hr_comment,id,created_date,updated_date,created_by_id,created_by,is_sample
+"68aea2704f1dedb1f6452a6a","Sick","2025-08-25","2025-08-26","Fever","Approved","","","68aea48c26f52dc5d9d776fc","2025-08-27T06:24:12.316000","2025-08-30T06:54:23.478000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"68aea39a2665d8f93acb459f","Casual","2025-08-30","2025-08-30","emergency","Rejected","","emergency","68aed727afc0d92f6d2960e2","2025-08-27T10:00:07.200000","2025-08-30T06:54:12.116000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"68aea2704f1dedb1f6452a6a","Sick","2025-08-29","2025-08-29","sick","Approved","","","68b15a22382706fa84e704a9","2025-08-29T07:43:30.701000","2025-08-30T06:52:26.867000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""

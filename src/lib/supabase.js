@@ -1,0 +1,86 @@
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize the Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables. Make sure to set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Authentication helpers
+export const auth = {
+  // Sign up a new user
+  signUp: async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    return { data, error };
+  },
+
+  // Sign in a user
+  signIn: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { data, error };
+  },
+
+  // Sign out the current user
+  signOut: async () => {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  },
+
+  // Get the current user
+  getCurrentUser: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    return { user: data?.user, error };
+  },
+
+  // Get the current session
+  getSession: async () => {
+    const { data, error } = await supabase.auth.getSession();
+    return { session: data?.session, error };
+  },
+
+  // Reset password
+  resetPassword: async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { data, error };
+  },
+
+  // Update user
+  updateUser: async (attributes) => {
+    const { data, error } = await supabase.auth.updateUser(attributes);
+    return { data, error };
+  },
+
+  // Set session
+  setSession: async (access_token, refresh_token) => {
+    const { data, error } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    });
+    return { data, error };
+  },
+
+  // OAuth sign in
+  signInWithOAuth: async (provider) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+    });
+    return { data, error };
+  },
+
+  // Auth state change listener
+  onAuthStateChange: (callback) => {
+    return supabase.auth.onAuthStateChange(callback);
+  }
+};

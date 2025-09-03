@@ -1,0 +1,9 @@
+item_name,category,unit_cost,quantity_available,reorder_level,supplier,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Michelin 225/65 R17","Tyres","450","15","5","TyreCo Dubai","68aeaa26b72a2b4c5049f306","2025-08-27T06:48:06.589000","2025-08-27T06:48:18.015000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Air Filter","Filters","120","10","5","AutoParts UAE","68aeaaaff5ecb8d84a18cf71","2025-08-27T06:50:23.757000","2025-08-27T06:50:34.764000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Oil filter Bosch","Filters","90","12","10","Tyre & Parts Co","68aeaaf7bb28483044007a9c","2025-08-27T06:51:35.443000","2025-08-27T06:51:35.443000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Brake Pads (Front) Brembo","Brakes","350","30","25","SpeedParts Dubai","68aeab182665d8f93acb9525","2025-08-27T06:52:08.470000","2025-08-27T06:52:08.470000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Brake Pads (Rear) ATE","Brakes","300","35","25","SpeedParts Dubai","68aeab2f74d95678074aa81b","2025-08-27T06:52:31.993000","2025-08-27T06:52:31.993000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Tyre 285/60 R18 Goodyear","Tyres","900","10","15","Desert tyres","68aeab5f3aed0b8a572bc841","2025-08-27T06:53:19.540000","2025-08-27T06:53:19.540000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Semi-Synthetic 10W-40 Castrol","Engine Oil","140","40","50","OilMaster UAE","68aeab823aecd614af00eb53","2025-08-27T06:53:54.152000","2025-08-27T06:53:54.152000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Front Bumper Nissan OEM","Body Parts","1200","5","5","AutoBody UAE","68aeababa88d2cf71b627872","2025-08-27T06:54:35.543000","2025-08-27T06:54:35.543000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""

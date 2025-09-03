@@ -1,0 +1,2 @@
+category,document_type,document_name,file_url,file_type,upload_date,expiry_date,description,is_critical,renewal_reminder_days,responsible_department,is_verified,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Legal","Trade License","trade license","https://base44.app/api/apps/6891f57922e817b10a5d63fb/files/4c11441eb_AlJisrCarRentals-CompleteAPISpecification.pdf","application/pdf","2025-08-30","","","true","30","","","68b2b88c06868cf93fd839fd","2025-08-30T08:38:36.511000","2025-08-30T08:38:36.511000","68b2960d78d968c9b5f81d76","lalchempakathinal@gmail.com",""

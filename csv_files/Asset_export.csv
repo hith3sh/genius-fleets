@@ -1,0 +1,2 @@
+asset_name,purchase_date,purchase_cost,depreciation_method,lifespan_years,depreciation_start_date,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Nissan Pathfinder","2024-10-24","45000","Straight-Line","5","2025-07-24","68aea9ad3d74e871571a7808","2025-08-27T06:46:05.058000","2025-08-27T06:46:05.058000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""

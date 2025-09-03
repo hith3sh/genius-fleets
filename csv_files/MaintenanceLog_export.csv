@@ -1,0 +1,3 @@
+vehicle_id,service_date,odometer_reading,service_type,vendor,cost,report_url,notes,next_service_due_date,status,id,created_date,updated_date,created_by_id,created_by,is_sample
+"68ae945c26f52dc5d9d75231","2025-08-27","245015","Inspection","","250","","","2025-10-31","Upcoming","68aea61703a82632bd7a6edf","2025-08-27T06:30:47.496000","2025-08-27T06:30:47.496000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"68ae968af73d9093646c9e65","2025-08-27","125456","Repair","","300","","","2025-08-27","Upcoming","68aea645e08949aab5f86620","2025-08-27T06:31:33.911000","2025-08-27T06:31:33.911000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""

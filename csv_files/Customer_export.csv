@@ -1,0 +1,44 @@
+name,email,phone,license_number,address,customer_type,status,id,created_date,updated_date,created_by_id,created_by,is_sample
+"John Smith","john.smith@email.com","+971-50-123-4567","DL12345678","123 Business Bay, Dubai, UAE","Individual","Active","6891f61474e44b72f43af76b","2025-08-05T12:16:20.680000","2025-08-05T12:16:20.680000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Roosewalt Pereira","roosewalt@gmail.com","N/A","","","Individual","Active","6894bbfdab2308e604016a69","2025-08-07T14:45:17.856000","2025-08-07T14:45:17.856000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Roosewalt Sabestian Pereira","blogger.pereira@gmail.com","0562440200","","","Individual","Active","6894c8aa0c32d916c5518636","2025-08-07T15:39:22.469000","2025-08-07T15:39:22.469000","6894c84f3b1c9a9a6bd83123","blogger.pereira@gmail.com",""
+"Roosewalt Sabestian Pereira","roosewalt@gmail.com","0562440200","","","Individual","Active","6894c7940c32d916c5517f1e","2025-08-07T15:34:44.202000","2025-08-07T15:34:44.202000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Test booking ","help@joboy.","582628980","","","Individual","Active","68958e7202970b0f981f51e5","2025-08-08T05:43:14.033000","2025-08-08T05:43:14.033000","68958df4e36da7697b58b2e4","help@joboy.ae",""
+"Test","test","Test","","","Individual","Active","68960bc5f83ba19134972b7e","2025-08-08T14:37:57.708000","2025-08-08T14:37:57.708000","68958df4e36da7697b58b2e4","help@joboy.ae",""
+"Majid ABdul","majid1212@gmail.com","+971123456789","","903 Al Saud Bldg 2","Individual","Active","689b185738f567d4124b12a1","2025-08-12T10:32:55.958000","2025-08-12T10:32:55.958000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Lal Sebastian","lalchempakathinal@gmail.com","+971000000000","","Street No. 25","Individual","Active","68ac09adbf62389457936561","2025-08-25T06:58:53.331000","2025-08-25T06:58:53.331000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Ahmed Khalid Al Mansoori","ahmed.mansoori@example.com","+971502345678","","Villa 12, Jumeirah 1, Dubai","Individual","Active","68ae9fb900fa9d9908d4ac28","2025-08-27T06:03:37.132000","2025-08-27T06:03:37.132000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Ahmed Khalid Al Mansoori","ahmed.mansoori@example.com","+971502345678","","Villa 12, Jumeirah 1, Dubai","Individual","Active","68ae9fec97b85b9bf36bf1de","2025-08-27T06:04:28.386000","2025-08-27T06:04:28.386000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Ahmed Khalid Al Mansoori","ahmed.mansoori@example.com","502345678","DUB123456","Villa 12, Jumeirah 1, Dubai","Individual","Active","68aea02c0eee339319eebe17","2025-08-27T06:05:32.303000","2025-08-27T06:05:32.303000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Priya Ramesh Nair","priya.nair@example.com","+971523456789","","Apt 405, Bur Dubai, Dubai","Individual","Active","68aea521763c5b795bf17287","2025-08-27T06:26:41.482000","2025-08-27T06:26:41.482000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Ahmed Khalid Al Mansoori","ahmed.mansoori@example.com","","","","Individual","Active","68aea75a460af91080ff23a1","2025-08-27T06:36:10.291000","2025-08-27T06:36:10.291000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Gabesh Shah","gabesh@gmail.com","+971502402200","","Flat 111, Hasani 19","Individual","Active","68aea7933d74e871571a6dbb","2025-08-27T06:37:07.224000","2025-08-27T06:37:07.224000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Ahmed Shah","as123@gmail.com","+971562000200","ABC1234","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aea8f1c8ac0b9f1af10fce","2025-08-27T06:42:57.094000","2025-08-27T06:42:57.094000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Ganesh Shah","Gshah12@gmail.com","+971562440222","ABC1234","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aea9afa907dfc39ec3faab","2025-08-27T06:46:07.935000","2025-08-27T06:46:07.935000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Roman Bhat","roman111@gmail.com","+971562440440","ABC1234","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aeaabc4f1dedb1f645b725","2025-08-27T06:50:36.229000","2025-08-27T06:50:36.229000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"ABC Xghhhh","abc@gmail.com","+971562220222","ABC1234","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aead8ddf09521d6f4c282c","2025-08-27T07:02:37.345000","2025-08-27T07:02:37.345000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"aaaaaaa","aaaaa@gmail.com","+971555555555","","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aeae7ec2d73cb3de395e81","2025-08-27T07:06:38.891000","2025-08-27T07:06:38.891000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"kkkk hhhhh","gggg@gmail.com","+971562440022","ABC1234","Flat 111, Hasani 19
+Doha Street","Individual","Active","68aeaf2f314bcc9df314692c","2025-08-27T07:09:35.007000","2025-08-27T07:09:35.007000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Michael Andrew Smith","michael.smith@example.com","","","","Individual","Active","68aeb0146439e3942fa1460e","2025-08-27T07:13:24.988000","2025-08-27T07:13:24.988000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Fatima Hassan El Sayed","fatima.elsayed@example.com","+971567654321","DUB345678","Apt 902, Al Nahda, Dubai
+","Individual","Active","68aec36851d59bf33329cb25","2025-08-27T08:35:52.659000","2025-08-27T08:35:52.659000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Zhang Wei","zhang.wei@example.com","+971583214567","DUB901234","International City, China Cluster, Dubai
+","Corporate","Active","68b15681eaf6af0b3fb051a8","2025-08-29T07:28:01.363000","2025-08-29T07:28:01.363000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Ahmed Al Mansouri","ahmed.almansouri@email.com","+971 50 123 4567","12345678","Dubai Marina, Dubai, UAE","Individual","Active","68b1ac7c9db3dc161f0606e4","2025-08-29T13:34:52.218000","2025-08-29T13:34:52.218000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Sarah Johnson","sarah.johnson@email.com","+971 55 234 5678","87654321","Jumeirah Beach Residence, Dubai, UAE","Individual","Active","68b1ac7c9db3dc161f0606e5","2025-08-29T13:34:52.219000","2025-08-29T13:34:52.219000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Mohammed Hassan","mohammed.hassan@email.com","+971 50 345 6789","11223344","Al Barsha, Dubai, UAE","Individual","Active","68b1ac7c9db3dc161f0606e6","2025-08-29T13:34:52.219000","2025-08-29T13:34:52.219000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Emirates Business Solutions","contact@emiratesbiz.com","+971 4 567 8900","","Business Bay, Dubai, UAE","Corporate","Active","68b1ac7c9db3dc161f0606e7","2025-08-29T13:34:52.219000","2025-08-29T13:34:52.219000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Fatima Al Zahra","fatima.alzahra@email.com","+971 56 456 7890","55667788","Downtown Dubai, Dubai, UAE","Individual","Active","68b1ac7c9db3dc161f0606e8","2025-08-29T13:34:52.219000","2025-08-29T13:34:52.219000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Lexus Auto LLC","roosewalt@geniushands.ae","","","","Individual","Active","68b5735bcb51b0aaf253903d","2025-09-01T10:20:11.153000","2025-09-01T10:20:11.153000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Amazon Corp","amazon@gmail.com","","","","Individual","Active","68b5ab5d27d3fa5d4fc1ff19","2025-09-01T14:19:09.098000","2025-09-01T14:19:09.098000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"DDD trading LLC","ddd@gmail.com","","","","Individual","Active","68b5ab8fba7c840aa8f5b445","2025-09-01T14:19:59.249000","2025-09-01T14:19:59.249000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Google enterprises","google@gmail.com","","","","Individual","Active","68b5b0ea3b9c920553356dfb","2025-09-01T14:42:50.919000","2025-09-01T14:42:50.919000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"ABCD LLC","abvgalt@gmail.com","","","","Individual","Active","68b5b1108de08182b7d436fb","2025-09-01T14:43:28.948000","2025-09-01T14:43:28.948000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Google enterprises","ggggalt@gmail.com","","","","Individual","Active","68b5b639ad95870195f058b1","2025-09-01T15:05:29.088000","2025-09-01T15:05:29.088000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Amazon Corp","vbbbsewalt@gmail.com","","","","Individual","Active","68b5bc39efab9c1fba4461a6","2025-09-01T15:31:05.899000","2025-09-01T15:31:05.899000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""

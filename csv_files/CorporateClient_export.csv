@@ -1,0 +1,11 @@
+company_name,account_manager_id,billing_agreement,contacts,notes,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Future micra","","1. Billing
+The Client agrees to be billed for all rental charges and associated fees incurred by its authorized employees. Invoices will be issued monthly and are due within 20  days of the invoice date.
+
+2. Payment
+Payment will be made via  bank / credit card. Late payments may be subject to a late fee of  1.5% per month.","[{""name"":""Zhang Wei"",""role"":""Manager "",""phone"":""583214567"",""email"":""zhang.wei@example.com""}]","","68b158a105eaf67c5e94ef30","2025-08-29T07:37:05.239000","2025-08-29T07:37:05.239000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Future micra","","test","[]","","68b16bfd3343896a8f55f843","2025-08-29T08:59:41.081000","2025-08-29T08:59:41.081000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Future micra","","","[{""name"":""sdfsdf"",""role"":"""",""phone"":"""",""email"":""""}]","","68b17e86853fa33401836580","2025-08-29T10:18:46.026000","2025-08-29T10:18:46.026000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Future micra","","Test","[{""name"":""Test1"",""role"":""Manager test"",""phone"":""566552258"",""email"":""test@example.ioae""}]","","68b1ac5fe0b9180e524eea83","2025-08-29T13:34:23.908000","2025-08-29T13:34:23.908000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Emirates Tech Solutions","placeholder-user-id-1","Net 30 payment terms, monthly invoicing","[{""name"":""Ali Hassan Al Maktoum"",""role"":""Fleet Manager"",""phone"":""+971 4 123 4567"",""email"":""ali.hassan@emiratestech.com""},{""name"":""Sarah Johnson"",""role"":""Procurement Head"",""phone"":""+971 4 123 4568"",""email"":""sarah.johnson@emiratestech.com""}]","Premium corporate client, requires luxury vehicle fleet","68b1ade39388385ec78e2b3b","2025-08-29T13:40:51.889000","2025-08-29T13:40:51.889000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""
+"Dubai Business Hub","placeholder-user-id-2","Quarterly payment, bulk discount applicable","[{""name"":""Mohammed Al Rashid"",""role"":""CEO"",""phone"":""+971 4 234 5678"",""email"":""mohammed@dubaibiz.com""}]","Long-term client since 2020","68b1ade39388385ec78e2b3c","2025-08-29T13:40:51.889000","2025-08-29T13:40:51.889000","6891f57922e817b10a5d63fc","roosewalt@gmail.com",""

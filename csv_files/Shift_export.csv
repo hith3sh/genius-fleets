@@ -1,0 +1,3 @@
+name,start_time,end_time,duration_hours,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Morning shift","08:00","17:30","9.5","68aea31643d8a6f9989abc6c","2025-08-27T06:17:58.403000","2025-08-27T06:17:58.403000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"Night shift","17:00","02:00","9","68aea3d703a82632bd7a4e98","2025-08-27T06:21:11.112000","2025-08-27T06:21:11.112000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""

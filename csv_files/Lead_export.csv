@@ -1,0 +1,5 @@
+name,email,phone,source,status,assigned_to_id,notes,id,created_date,updated_date,created_by_id,created_by,is_sample
+"Zhang Wei","zhang.wei@example.com","583214567","website","New","","","68b156b9f82b217be1fcbefc","2025-08-29T07:28:57.553000","2025-08-29T07:28:57.553000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Zhang Wei","zhang.wei@example.com","567654321","website","New","","","68b16091dd4a6749e98ace49","2025-08-29T08:10:57.018000","2025-08-29T08:10:57.018000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Zhang Wei","zhang.wei@example.com","567654321","website","New","","","68b16bc5dd92ffd94cb1c80a","2025-08-29T08:58:45.472000","2025-08-29T08:58:45.472000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""
+"Ahmed Khalid Al Mansoori","ahmed.mansoori@example.com","583214567","Social media","Won","","","68b17e367e5864411ca3e89d","2025-08-29T10:17:26.528000","2025-08-29T12:30:03.025000","68aecb1f25fda440c3035c72","lalchempakathinal@gmail.com",""

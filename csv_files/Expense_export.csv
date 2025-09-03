@@ -1,0 +1,6 @@
+expense_date,category,description,amount,paid_to,payment_method,project_client,receipt_url,id,created_date,updated_date,created_by_id,created_by,is_sample
+"2025-08-27","Utilities","DEWA","1000","DEWA","Company Account","","","68aea89b62356f65c52ca4cb","2025-08-27T06:41:31.895000","2025-08-27T06:41:31.895000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"2025-08-27","Maintenance","Breakdown","300","AutoGarage","Bank Transfer","P/76403","","68aea8c00a2df66a886db126","2025-08-27T06:42:08.982000","2025-08-27T06:42:08.982000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"2025-08-27","Salaries","Driver salary","2500","Driver","Company Account","P/61550","","68aea8ee9306ee656b3b97b8","2025-08-27T06:42:54.738000","2025-08-27T06:42:54.738000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"2025-08-27","Marketing","Google ads","400","Google","Company Account","","","68aea908522c28d7c3d163a5","2025-08-27T06:43:20.875000","2025-08-27T06:43:20.875000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"2025-08-27","Travel","Staff travel allowance","100","Staff","Cash","","","68aea925d16d2d2054e89437","2025-08-27T06:43:49.941000","2025-08-27T06:43:49.941000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""

@@ -1,0 +1,6 @@
+employee_id,name,email,phone,date_of_birth,nationality,gender,address,department,designation,join_date,employment_type,reporting_manager_id,status,base_salary,passport_copy_url,visa_page_url,emirates_id_url,other_documents,id,created_date,updated_date,created_by_id,created_by,is_sample
+"EMP1001","Omar Khalid Hassan","omar.hassan@example.com","+971502345678","1991-03-15","","Male","Al Nahda, Dubai
+","Marketing","Sales executive","2025-05-15","Full-time","","Active","4000","","","","[]","68aea233e1adeabd85297881","2025-08-27T06:14:11.439000","2025-08-27T06:16:27.570000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"EMP1002","John Michael Smith","john.smith@example.com","+971551239876","1990-11-02","","Male","","Marketing","Sales executive","2025-04-20","Full-time","","Active","4000","","","","[]","68aea2704f1dedb1f6452a6a","2025-08-27T06:15:12.840000","2025-08-27T06:16:18.963000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
+"EMP1005","Ahmed Raza Khan","ahmed.khan@example.com","+971543219876","1994-12-25","","Male","Jumeirah Lake Towers, Dubai
+","Operations","Driver","2025-08-11","Full-time","","Active","2500","","","","[]","68aea39a2665d8f93acb459f","2025-08-27T06:20:10.683000","2025-08-27T06:20:10.683000","6894cc093900a377d283351f","lalchempakathinal@gmail.com",""
