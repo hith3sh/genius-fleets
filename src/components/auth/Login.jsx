@@ -8,10 +8,41 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Mail, Lock } from 'lucide-react';
 
+// Global error state that persists across component remounts
+let globalLoginError = '';
+let globalErrorListeners = [];
+
+const setGlobalLoginError = (error) => {
+  globalLoginError = error;
+  globalErrorListeners.forEach(listener => listener(error));
+};
+
+const addGlobalErrorListener = (listener) => {
+  globalErrorListeners.push(listener);
+  return () => {
+    globalErrorListeners = globalErrorListeners.filter(l => l !== listener);
+  };
+};
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
+  const [displayError, setDisplayError] = useState(globalLoginError);
+  
+  // Listen to global error changes
+  React.useEffect(() => {
+    const unsubscribe = addGlobalErrorListener((error) => {
+      setDisplayError(error);
+    });
+    
+    // Set initial display error
+    setDisplayError(globalLoginError);
+    
+    return () => {
+      unsubscribe();
+    };
+  }, []);
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -29,6 +60,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setGlobalLoginError('');
     setFormError('');
     setLoading(true);
 
@@ -47,12 +79,6 @@ export default function Login() {
       return;
     }
 
-    // Basic password length check
-    if (password.length < 6) {
-      setFormError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
 
     try {
       const { success, error } = await signIn(email, password);
@@ -62,27 +88,35 @@ export default function Login() {
       } else {
         // Handle specific error messages from Supabase
         const errorMessage = error?.toLowerCase() || '';
+        let finalErrorMessage = '';
         
         if (errorMessage.includes('email not confirmed')) {
-          setFormError('Please check your email and click the confirmation link before signing in.');
+          finalErrorMessage = 'Please check your email and click the confirmation link before signing in.';
         } else if (errorMessage.includes('invalid login credentials') || errorMessage.includes('invalid email or password')) {
-          setFormError('The email or password you entered is incorrect. Please check your credentials and try again.');
+          finalErrorMessage = 'The email or password you entered is incorrect. Please check your credentials and try again. ';
         } else if (errorMessage.includes('email not found') || errorMessage.includes('user not found')) {
-          setFormError('No account found with this email address. Please check your email or sign up for a new account.');
+          finalErrorMessage = 'No account found with this email address. ';
         } else if (errorMessage.includes('too many requests')) {
-          setFormError('Too many sign-in attempts. Please wait a few minutes before trying again.');
-        } else if (errorMessage.includes('network')) {
-          setFormError('Network error. Please check your internet connection and try again.');
+          finalErrorMessage = 'Too many sign-in attempts. Please wait a few minutes before trying again. ';
+        } else if (errorMessage.includes('network') || errorMessage.includes('fetch')) {
+          finalErrorMessage = 'Network error. Please check your internet connection and try again.';
         } else if (errorMessage.includes('signup disabled')) {
-          setFormError('Sign-ups are currently disabled. Please contact support.');
+          finalErrorMessage = 'New account registrations are currently disabled. Please contact support for assistance.';
+        } else if (errorMessage.includes('account disabled') || errorMessage.includes('user disabled')) {
+          finalErrorMessage = 'Your account has been disabled. Please contact support for assistance.';
+        } else if (errorMessage.includes('password')) {
+          finalErrorMessage = 'Password error. Please check your password and try again.';
         } else {
           // Generic error message for any other cases
-          setFormError(error || 'Unable to sign in. Please check your credentials and try again.');
+          finalErrorMessage = error || 'Unable to sign in. Please check your credentials and try again.';
         }
+        
+        // Set the global error which will persist across component remounts
+        setGlobalLoginError(finalErrorMessage);
       }
     } catch (err) {
       console.error('Login error:', err);
-      setFormError('An unexpected error occurred. Please try again.');
+      setGlobalLoginError('An unexpected error occurred. Please try again. If the problem persists, please contact support.');
     }
     
     setLoading(false);
@@ -102,6 +136,11 @@ export default function Login() {
     }
     setLoading(false);
   };
+
+  // Debug log for formError state
+  console.log('🎨 Login: Rendering with formError:', formError);
+  console.log('🎨 Login: formError type:', typeof formError);
+  console.log('🎨 Login: formError truthy:', !!formError);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -124,11 +163,27 @@ export default function Login() {
             <p className="text-gray-600">Sign in to continue</p>
           </div>
 
+
           {/* Error Alert */}
-          {formError && (
+          {(displayError || formError) && (
             <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-800">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="font-medium">{formError}</AlertDescription>
+              <AlertDescription className="font-medium">{displayError || formError}</AlertDescription>
+              {/* Helpful suggestions based on error type */}
+              {(displayError || formError).includes('incorrect') && (
+                <div className="mt-2 text-sm text-red-700">
+                </div>
+              )}
+              {(displayError || formError).includes('No account found') && (
+                <div className="mt-2 text-sm text-red-700">
+                  <div className="font-medium">💡 Next steps:</div>
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>Double-check your email address</li>
+                    <li>Create a new account using the "Sign up" link below</li>
+                    <li>Contact support if you believe this is an error</li>
+                  </ul>
+                </div>
+              )}
             </Alert>
           )}
 
@@ -173,7 +228,8 @@ export default function Login() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    if (formError) setFormError(''); // Clear error when user starts typing
+                    if (displayError) setGlobalLoginError(''); // Clear global error
+                    if (formError) setFormError(''); // Clear form error
                   }}
                   className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   required
@@ -192,7 +248,8 @@ export default function Login() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if (formError) setFormError(''); // Clear error when user starts typing
+                    if (displayError) setGlobalLoginError(''); // Clear global error
+                    if (formError) setFormError(''); // Clear form error
                   }}
                   className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   required

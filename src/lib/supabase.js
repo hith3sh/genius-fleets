@@ -46,10 +46,23 @@ export const auth = {
     return { error };
   },
 
-  // Get the current user
+  // Get the current user (optimized with session check first)
   getCurrentUser: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    return { user: data?.user, error };
+    try {
+      // First check local session (faster)
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (sessionData?.session?.user) {
+        // If we have a session, verify the user is still valid
+        const { data: userData, error } = await supabase.auth.getUser();
+        return { user: userData?.user, error };
+      } else {
+        // No session, no user
+        return { user: null, error: null };
+      }
+    } catch (error) {
+      return { user: null, error };
+    }
   },
 
   // Get the current session

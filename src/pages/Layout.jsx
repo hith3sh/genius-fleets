@@ -303,29 +303,23 @@ export default function Layout({ children, currentPageName }) {
         // Scenario 2: User is authenticated from a previous session but is on a protected page.
         // We set up their access rights but DO NOT redirect them from the landing page.
         if (currentPageName !== 'LandingPage') {
-            console.log('Current user role from User.me():', currentUser.role);
+            console.log('🎯 Layout: Setting up access for user role:', currentUser.role);
+            
+            // User.me() now includes all access data, so we can use it directly
+            const userAccessData = {
+              role: currentUser.role,
+              accessible_modules: currentUser.accessible_modules || [],
+              user_email: currentUser.email
+            };
+            
+            // For Management role, ensure 'all' modules access for backward compatibility
             if (currentUser.role === 'Management') {
-              console.log('Setting Management access');
-              setUserAccess({ accessible_modules: 'all', role: 'Management' });
-            } else if (currentUser.role !== 'Customer') { // Staff users
-              // For staff users, the role and access info should already be loaded from the User.me() call
-              // But we still need to check if they have an access record
-              const accessRecords = await UserAccess.filter({ user_email: currentUser.email });
-              console.log('Access records found:', accessRecords);
-              if (accessRecords.length > 0) {
-                console.log('Setting userAccess from database record:', accessRecords[0]);
-                setUserAccess(accessRecords[0]);
-              } else {
-                // If no access rules are found, set access based on their role from User.me()
-                const fallbackAccess = {
-                  role: currentUser.role,
-                  accessible_modules: currentUser.accessible_modules || [],
-                  user_email: currentUser.email
-                };
-                console.log('Setting fallback userAccess:', fallbackAccess);
-                setUserAccess(fallbackAccess);
-              }
+              console.log('👑 Layout: Management user detected, granting full access');
+              userAccessData.accessible_modules = 'all';
             }
+            
+            console.log('📋 Layout: Setting userAccess:', userAccessData);
+            setUserAccess(userAccessData);
         }
       } catch (error) {
         // User is not authenticated

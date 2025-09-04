@@ -72,17 +72,38 @@ export function AuthProvider({ children }) {
   // Sign in function
   const signIn = async (email, password) => {
     try {
+      console.log('🔐 AuthContext: Starting sign in process for:', email);
       setLoading(true);
       setError(null);
+      
       await User.signIn(email, password);
+      console.log('✅ AuthContext: Sign in successful, getting user data...');
+      
       const currentUser = await User.me();
+      console.log('👤 AuthContext: User data retrieved:', currentUser ? 'Success' : 'Failed');
       setUser(currentUser);
+      
       return { success: true };
     } catch (err) {
-      console.error('Sign in error:', err);
-      setError(err.message);
-      return { success: false, error: err.message };
+      console.error('❌ AuthContext: Sign in error:', err);
+      
+      // Provide more specific error messages
+      let errorMessage = err.message;
+      
+      if (err.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Invalid login credentials';
+      } else if (err.message?.includes('Email not confirmed')) {
+        errorMessage = 'Email not confirmed';
+      } else if (err.message?.includes('Too many requests')) {
+        errorMessage = 'Too many requests';
+      } else if (err.message?.includes('User not found')) {
+        errorMessage = 'User not found';
+      }
+      
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
     } finally {
+      console.log('🏁 AuthContext: Sign in process complete');
       setLoading(false);
     }
   };

@@ -12,81 +12,73 @@ class User extends BaseEntity {
    */
   async me() {
     console.log('🔍 User.me(): Getting current user...');
-    const { user, error } = await auth.getCurrentUser();
+    const startTime = performance.now();
     
-    if (error) {
-      console.error('❌ User.me(): Error getting current user:', error);
-      throw error;
-    }
-    
-    console.log('👤 User.me(): Current user from auth:', user ? 'Found' : 'None');
-    
-    // If user exists but email not confirmed, return null to keep them unauth
-    if (user && !user.email_confirmed_at) {
-      console.log('User exists in Supabase auth but email not confirmed - keeping unauthenticated for verification flow');
-      return null;
-    }
-    
-    // If user exists and email confirmed, get their access info from user_access table
-    if (user) {
-      try {
-        const { data, error: accessError } = await supabase
-          .from('user_access')
-          .select('user_email, accessible_modules, role')
-          .eq('user_email', user.email)
-          .maybeSingle();
-        
-        if (accessError) {
-          console.warn('Error fetching user access:', accessError);
-          // Still need to check email confirmation even if access error
-          if (!user.email_confirmed_at) {
-            console.log('User exists in auth but email not confirmed (access error case)');
-            return null;
-          }
-          // Return basic user info if access info can't be retrieved but email confirmed
-          return {
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-            role: 'Staff', // Default role when no access record found
-            accessible_modules: [],
-            created_at: user.created_at,
-            last_sign_in_at: user.last_sign_in_at
-          };
-        }
-
-        // Return user with access modules if available
-        return {
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-          role: data?.role || 'Staff', // Use role from database or default to Staff
-          accessible_modules: data?.accessible_modules || [],
-          created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at,
-          email_confirmed: !!user.email_confirmed_at
-        };
-      } catch (err) {
-        console.error('Error in me() method:', err);
-        // Still need to check email confirmation even in catch case
-        if (!user.email_confirmed_at) {
-          console.log('User exists in auth but email not confirmed (catch case)');
-          return null;
-        }
-        // Return basic user info if access info can't be retrieved but email confirmed
-        return {
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-          role: 'Staff', // Default role when no access record found
-          accessible_modules: [],
-          created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at
-        };
+    try {
+      // Get user from auth
+      const { user, error } = await auth.getCurrentUser();
+      
+      if (error) {
+        console.error('❌ User.me(): Auth error:', error);
+        throw error;
       }
+      
+      if (!user) {
+        console.log('👤 User.me(): No authenticated user found');
+        return null;
+      }
+
+      console.log(`👤 User.me(): Auth user found for ${user.email}`);
+      
+      // Check email confirmation
+      if (!user.email_confirmed_at) {
+        console.log('📧 User.me(): Email not confirmed, keeping unauthenticated');
+        return null;
+      }
+
+      // Get user access info from database
+      console.log('🔍 User.me(): Fetching user access data...');
+      const { data: accessData, error: accessError } = await supabase
+        .from('user_access')
+        .select('user_email, accessible_modules, role')
+        .eq('user_email', user.email)
+        .maybeSingle();
+      
+      // Build user object
+      const userData = {
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        created_at: user.created_at,
+        last_sign_in_at: user.last_sign_in_at,
+        email_confirmed: true
+      };
+
+      if (accessError) {
+        console.warn('⚠️ User.me(): Access data fetch error:', accessError);
+        userData.role = 'Staff';
+        userData.accessible_modules = [];
+      } else if (accessData) {
+        console.log(`✅ User.me(): Access data found - Role: ${accessData.role}`);
+        userData.role = accessData.role || 'Staff';
+        userData.accessible_modules = accessData.accessible_modules || [];
+      } else {
+        console.log('📝 User.me(): No access data found, using defaults');
+        userData.role = 'Staff';
+        userData.accessible_modules = [];
+      }
+
+      const endTime = performance.now();
+      console.log(`⚡ User.me(): Completed in ${(endTime - startTime).toFixed(2)}ms - Role: ${userData.role}`);
+      
+      return userData;
+
+    } catch (err) {
+      console.error('❌ User.me(): Unexpected error:', err);
+      const endTime = performance.now();
+      console.log(`💥 User.me(): Failed after ${(endTime - startTime).toFixed(2)}ms`);
+      throw err;
     }
-    
-    return null;
   }
 
   /**
