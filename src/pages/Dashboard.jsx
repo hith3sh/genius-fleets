@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { User } from "@/api/entities";
+import { useAuth } from "../contexts/AuthContext";
 import { Vehicle } from "@/api/entities";
 import { Customer } from "@/api/entities";
 import { Booking } from "@/api/entities";
@@ -21,7 +21,7 @@ import RecentBookings from "../components/dashboard/RecentBookings";
 import StatListDialog from "../components/dashboard/StatListDialog";
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState({
     totalVehicles: 0,
     availableVehicles: 0,
@@ -33,15 +33,14 @@ export default function Dashboard() {
   const [dialogData, setDialogData] = useState({ isOpen: false, title: '', items: [], columns: [] });
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (user && !authLoading) {
+      loadDashboardData();
+    }
+  }, [user, authLoading]);
 
   const loadDashboardData = async () => {
     setIsLoading(true);
     try {
-      const userData = await User.me();
-      setUser(userData);
-
       // Load stats
       const [vehicles, customers, bookings] = await Promise.all([
         Vehicle.list(),
@@ -127,6 +126,15 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="ml-4 text-gray-600">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 bg-gradient-to-br from-rose-50 via-purple-100 to-blue-100 min-h-full">

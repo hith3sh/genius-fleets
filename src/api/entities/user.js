@@ -15,7 +15,7 @@ class User extends BaseEntity {
     const startTime = performance.now();
     
     try {
-      // Get user from auth
+      // Get user from auth (single optimized call)
       const { user, error } = await auth.getCurrentUser();
       
       if (error) {
@@ -25,6 +25,8 @@ class User extends BaseEntity {
       
       if (!user) {
         console.log('👤 User.me(): No authenticated user found');
+        const endTime = performance.now();
+        console.log(`⚡ User.me(): Completed in ${(endTime - startTime).toFixed(2)}ms - No user`);
         return null;
       }
 
@@ -33,10 +35,12 @@ class User extends BaseEntity {
       // Check email confirmation
       if (!user.email_confirmed_at) {
         console.log('📧 User.me(): Email not confirmed, keeping unauthenticated');
+        const endTime = performance.now();
+        console.log(`⚡ User.me(): Completed in ${(endTime - startTime).toFixed(2)}ms - Email not confirmed`);
         return null;
       }
 
-      // Get user access info from database
+      // Get user access info from database (single query)
       console.log('🔍 User.me(): Fetching user access data...');
       const { data: accessData, error: accessError } = await supabase
         .from('user_access')
@@ -44,28 +48,50 @@ class User extends BaseEntity {
         .eq('user_email', user.email)
         .maybeSingle();
       
-      // Build user object
+      // Build user object with defaults
       const userData = {
         id: user.id,
         email: user.email,
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
         created_at: user.created_at,
         last_sign_in_at: user.last_sign_in_at,
-        email_confirmed: true
+        email_confirmed: true,
+        role: accessData?.role || 'Staff',
+        accessible_modules: accessData?.accessible_modules || []
       };
 
       if (accessError) {
-        console.warn('⚠️ User.me(): Access data fetch error:', accessError);
-        userData.role = 'Staff';
-        userData.accessible_modules = [];
+        console.warn('⚠️ User.me(): Access data fetch error, using defaults:', accessError);
       } else if (accessData) {
         console.log(`✅ User.me(): Access data found - Role: ${accessData.role}`);
-        userData.role = accessData.role || 'Staff';
-        userData.accessible_modules = accessData.accessible_modules || [];
       } else {
-        console.log('📝 User.me(): No access data found, using defaults');
-        userData.role = 'Staff';
-        userData.accessible_modules = [];
+        console.log('📝 User.me(): No access data found, creating default access record...');
+        // Auto-create default access record for users without one (after email verification)
+        try {
+          const defaultAccessRecord = {
+            user_email: user.email,
+            role: 'Staff',
+            accessible_modules: ['Dashboard']
+          };
+          
+          const { error: insertError } = await supabase
+            .from('user_access')
+            .insert([defaultAccessRecord])
+            .select();
+            
+          if (insertError) {
+            console.warn('⚠️ User.me(): Failed to create access record (permissions?), using defaults:', insertError);
+            // Continue with defaults rather than failing
+          } else {
+            console.log('✅ User.me(): Default access record created for', user.email);
+            // Update userData with the created values
+            userData.role = 'Staff';
+            userData.accessible_modules = ['Dashboard'];
+          }
+        } catch (insertError) {
+          console.warn('⚠️ User.me(): Exception creating access record, using defaults:', insertError);
+          // Continue with defaults rather than throwing
+        }
       }
 
       const endTime = performance.now();
@@ -87,23 +113,19 @@ class User extends BaseEntity {
    * @returns {Promise<object>} - The created user
    */
   async signUp(userData) {
+    console.log('📝 User.signUp(): Creating new user account for:', userData.email);
     const { data, error } = await auth.signUp(userData.email, userData.password);
     
-    if (error) throw error;
-    
-    // If user access data is provided, create a record in user_access
-    if (userData.accessible_modules) {
-      try {
-        await supabase
-          .from('user_access')
-          .insert([{
-            user_email: userData.email,
-            accessible_modules: userData.accessible_modules || []
-          }]);
-      } catch (err) {
-        console.error('Error creating user access record:', err);
-      }
+    if (error) {
+      console.error('❌ User.signUp(): Auth signup failed:', error);
+      throw error;
     }
+    
+    console.log('✅ User.signUp(): Auth user created successfully');
+    console.log('📧 User.signUp(): Verification email should be sent by Supabase');
+    
+    // Note: We'll create the user_access record when they first log in (in me() method)
+    // This ensures verification email is sent properly and access is created after confirmation
     
     return data;
   }

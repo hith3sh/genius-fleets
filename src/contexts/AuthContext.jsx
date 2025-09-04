@@ -18,19 +18,10 @@ export function AuthProvider({ children }) {
         console.log('🔄 AuthContext: Starting user load...');
         setLoading(true);
         
-        console.log('🔍 AuthContext: Getting session...');
-        const { session } = await auth.getSession();
-        console.log('📋 AuthContext: Session result:', session ? 'Found' : 'None');
-        
-        if (session) {
-          console.log('👤 AuthContext: Session found, getting user details...');
-          const currentUser = await User.me();
-          console.log('✅ AuthContext: User loaded:', currentUser ? 'Success' : 'Failed');
-          setUser(currentUser);
-        } else {
-          console.log('🚫 AuthContext: No session, setting user to null');
-          setUser(null);
-        }
+        console.log('👤 AuthContext: Getting user details...');
+        const currentUser = await User.me();
+        console.log('✅ AuthContext: User loaded:', currentUser ? 'Success' : 'Failed');
+        setUser(currentUser);
       } catch (err) {
         console.error('❌ AuthContext: Error loading user:', err);
         setError(err.message);
@@ -45,20 +36,14 @@ export function AuthProvider({ children }) {
 
     // Set up auth state change listener
     const { data: authListener } = auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Check if email is confirmed before setting user
-        if (session.user.email_confirmed_at) {
-          const currentUser = await User.me();
-          setUser(currentUser);
-        } else {
-          // User signed up but email not confirmed - don't set user state
-          // This allows them to stay on verification page
-          console.log('User signed in but email not confirmed yet');
-          setUser(null);
-        }
-      } else if (event === 'SIGNED_OUT') {
+      console.log(`🔄 AuthContext: Auth state changed: ${event}`);
+      
+      if (event === 'SIGNED_OUT') {
+        console.log('🚪 AuthContext: User signed out, clearing user state');
         setUser(null);
       }
+      // Note: SIGNED_IN events are handled by explicit signIn() calls
+      // Initial session loading is handled by loadUser() on mount
     });
 
     // Clean up subscription

@@ -13,14 +13,12 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [formError, setFormError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const { signUp, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
-    setSuccessMessage('');
 
     // Basic validation
     if (!email || !password || !confirmPassword) {
@@ -44,21 +42,14 @@ export default function Signup() {
     });
     
     if (success) {
-      // Show success message briefly before redirect
-      setSuccessMessage('Account created successfully! Redirecting to email verification...');
-      
-      // Small delay to show success message, then redirect
-      setTimeout(() => {
-        // Always redirect to email verification page with email in state
-        // Use replace to prevent back navigation to signup form
-        navigate('/verify-email', {
-          state: { 
-            email,
-            message: 'Please check your email and click the verification link to complete your account setup.'
-          },
-          replace: true
-        });
-      }, 1000);
+      // Immediately redirect to email verification page
+      navigate('/verify-email', {
+        state: { 
+          email,
+          message: 'Account created successfully! Please check your email and click the verification link to complete your account setup.'
+        },
+        replace: true
+      });
     } else {
       setFormError(error || 'Failed to create account');
     }
@@ -78,12 +69,6 @@ export default function Signup() {
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
-          
-          {successMessage && (
-            <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
-              <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
           )}
           

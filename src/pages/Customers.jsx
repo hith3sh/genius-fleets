@@ -18,6 +18,7 @@ export default function Customers() {
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [userRole, setUserRole] = useState(null); // Added userRole state
+  const [errorMessage, setErrorMessage] = useState(''); // Added error message state
 
   useEffect(() => {
     loadCustomers();
@@ -49,13 +50,14 @@ export default function Customers() {
     setIsLoading(true);
     try {
       console.log('Loading customers...'); // Added log
-      const data = await Customer.list('-created_date');
+      // Try without ordering first to isolate the issue
+      const data = await Customer.list();
       console.log('Customers loaded:', data.length, 'customers found'); // Added log
       console.log('Customer data:', data); // Added log
       setCustomers(data);
     } catch (error) {
       console.error('Error loading customers:', error);
-      alert(`Failed to load customers: ${error.message}. Please check your permissions.`); // Updated alert message
+      setErrorMessage(`Failed to load customers: ${error.message}. Please check your permissions.`);
     } finally {
       setIsLoading(false);
     }
@@ -85,15 +87,15 @@ export default function Customers() {
         console.log('Refreshing customer list...');
         await loadCustomers();
         
-        // Show success message after refresh
-        alert(editingCustomer ? 'Customer updated successfully!' : 'Customer created successfully!');
+        // Clear any previous error message
+        setErrorMessage('');
       } else {
         throw new Error('Invalid customer data returned');
       }
       
     } catch (error) {
       console.error('Error handling saved customer:', error);
-      alert(`Error: ${error.message}`);
+      setErrorMessage(`Error: ${error.message}`);
     }
   };
 
@@ -110,10 +112,10 @@ export default function Customers() {
     try {
       await Customer.delete(customerId);
       await loadCustomers(); // Refresh the list
-      alert('Customer deleted successfully!');
+      setErrorMessage(''); // Clear any error message
     } catch (error) {
       console.error('Error deleting customer:', error);
-      alert('Failed to delete customer. Please try again.');
+      setErrorMessage('Failed to delete customer. Please try again.');
     }
   };
 
@@ -190,6 +192,30 @@ export default function Customers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full bg-red-500"></div>
+              <h3 className="font-semibold text-red-800">Error</h3>
+            </div>
+            <p className="text-sm text-red-700 mt-2">{errorMessage}</p>
+            <Button 
+              onClick={() => {
+                setErrorMessage('');
+                loadCustomers();
+              }} 
+              variant="outline" 
+              size="sm" 
+              className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
+            >
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Debug Info */}
       {customers.length === 0 && !isLoading && (

@@ -29,7 +29,7 @@ export default function ProtectedRoute({ children, requiredModule }) {
 
   // If module access is required, check permissions
   if (requiredModule) {
-    const hasAccess = user.accessible_modules?.includes(requiredModule) || user.role === 'Admin';
+    const hasAccess = user.accessible_modules?.includes(requiredModule) || user.role === 'Management';
     
     if (!hasAccess) {
       return (

@@ -33,6 +33,7 @@ class BaseEntity {
    * @returns {Promise<Array>} - Array of records
    */
   async list(orderBy = 'created_at', filters = {}, limit = 100, offset = 0) {
+    console.log(`🔍 BaseEntity.list(): Table: ${this.tableName}, OrderBy: ${orderBy}, Filters:`, filters);
     let query = supabase
       .from(this.tableName)
       .select('*');
@@ -64,7 +65,12 @@ class BaseEntity {
     
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error(`❌ BaseEntity.list(): Query failed for table ${this.tableName}:`, error);
+      console.error(`❌ Query details: OrderBy: ${orderBy}, Filters:`, filters);
+      throw error;
+    }
+    console.log(`✅ BaseEntity.list(): Successfully fetched ${data?.length || 0} records from ${this.tableName}`);
     return data;
   }
 

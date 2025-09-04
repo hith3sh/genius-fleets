@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS user_access (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_email TEXT NOT NULL UNIQUE,
-    role TEXT DEFAULT 'User' CHECK (role IN ('Admin', 'Manager', 'User')),
+    role TEXT DEFAULT 'Staff' CHECK (role IN ('Management', 'Staff', 'Customer')),
     accessible_modules TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

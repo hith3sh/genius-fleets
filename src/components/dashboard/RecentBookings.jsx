@@ -27,8 +27,12 @@ export default function RecentBookings({ isLoading }) {
 
   const loadBookings = async () => {
     try {
-      const bookingsData = await Booking.list('-created_date', 6);
+      // Use default parameters to avoid parameter parsing issues
+      const bookingsData = await Booking.list();
       const customersData = await Customer.list();
+      
+      // Sort and limit manually for now
+      const sortedBookings = bookingsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
       
       // Create customer lookup
       const customerLookup = {};
@@ -36,7 +40,7 @@ export default function RecentBookings({ isLoading }) {
         customerLookup[customer.id] = customer;
       });
       
-      setBookings(bookingsData);
+      setBookings(sortedBookings);
       setCustomers(customerLookup);
     } catch (error) {
       console.error("Error loading bookings:", error);

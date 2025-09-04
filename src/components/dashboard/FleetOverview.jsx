@@ -24,8 +24,11 @@ export default function FleetOverview({ isLoading }) {
 
   const loadVehicles = async () => {
     try {
-      const data = await Vehicle.list('-updated_date', 8);
-      setVehicles(data);
+      // Use default parameters to avoid any parameter parsing issues
+      const data = await Vehicle.list();
+      // Limit to 8 and sort manually for now
+      const sortedData = data.sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)).slice(0, 8);
+      setVehicles(sortedData);
     } catch (error) {
       console.error("Error loading vehicles:", error);
     }
