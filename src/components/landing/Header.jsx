@@ -16,9 +16,9 @@ export default function Header() {
   const navLinks = [
     { name: 'Home', href: '/landing-page', isInternal: true },
     { name: 'Rent Cars', href: '/RentCars', isInternal: true },
-    { name: 'Cars for Sale', href: '#contact', isInternal: false },
-    { name: 'Promotions', href: '#promotions', isInternal: false },
-    { name: 'Contact', href: '#contact', isInternal: false },
+    { name: 'Cars for Sale', href: '/landing-page#contact', isInternal: true },
+    { name: 'Promotions', href: '/landing-page#promotions', isInternal: true },
+    { name: 'Contact', href: '/landing-page#contact', isInternal: true },
   ];
 
   return (
