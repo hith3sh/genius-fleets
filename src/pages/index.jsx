@@ -155,7 +155,8 @@ function PagesContent() {
     const isPublicRoute = ['/login', '/signup', '/forgot-password', '/verify-email', '/landing-page'].includes(location.pathname.toLowerCase());
     
     // If user is authenticated and tries to access auth pages, redirect to dashboard
-    if (user && isPublicRoute && location.pathname.toLowerCase() !== '/landing-page') {
+    // Exception: allow access to /verify-email even if authenticated but not confirmed
+    if (user && isPublicRoute && location.pathname.toLowerCase() !== '/landing-page' && location.pathname.toLowerCase() !== '/verify-email') {
         return <Navigate to="/dashboard" replace />;
     }
     

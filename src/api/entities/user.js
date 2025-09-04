@@ -15,7 +15,13 @@ class User extends BaseEntity {
     
     if (error) throw error;
     
-    // If user exists, get their access info from user_access table
+    // If user exists but email not confirmed, return null to keep them unauth
+    if (user && !user.email_confirmed_at) {
+      console.log('User exists but email not confirmed');
+      return null;
+    }
+    
+    // If user exists and email confirmed, get their access info from user_access table
     if (user) {
       try {
         const { data, error: accessError } = await supabase

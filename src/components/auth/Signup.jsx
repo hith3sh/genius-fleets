@@ -44,10 +44,21 @@ export default function Signup() {
     });
     
     if (success) {
-      // Redirect to email verification page with email in state
-      navigate('/verify-email', {
-        state: { email }
-      });
+      // Show success message briefly before redirect
+      setSuccessMessage('Account created successfully! Redirecting to email verification...');
+      
+      // Small delay to show success message, then redirect
+      setTimeout(() => {
+        // Always redirect to email verification page with email in state
+        // Use replace to prevent back navigation to signup form
+        navigate('/verify-email', {
+          state: { 
+            email,
+            message: 'Please check your email and click the verification link to complete your account setup.'
+          },
+          replace: true
+        });
+      }, 1000);
     } else {
       setFormError(error || 'Failed to create account');
     }

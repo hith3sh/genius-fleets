@@ -18,8 +18,9 @@ export default function EmailVerification() {
   const location = useLocation();
   const inputRefs = useRef([]);
   
-  // Get email from location state (passed from signup)
+  // Get email and message from location state (passed from signup)
   const email = location.state?.email;
+  const stateMessage = location.state?.message;
 
   useEffect(() => {
     // If no email provided, redirect to signup
@@ -143,10 +144,19 @@ export default function EmailVerification() {
           {/* Title */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-2">Verify your email</h1>
-            <p className="text-gray-600">
-              We've sent a 6-digit code to
-            </p>
-            <p className="font-medium text-gray-900">{email}</p>
+            {stateMessage ? (
+              <p className="text-gray-600 mb-2">{stateMessage}</p>
+            ) : (
+              <>
+                <p className="text-gray-600">
+                  We've sent a 6-digit code to
+                </p>
+                <p className="font-medium text-gray-900">{email}</p>
+              </>
+            )}
+            {stateMessage && (
+              <p className="font-medium text-gray-900 text-sm">Check: {email}</p>
+            )}
           </div>
 
           {/* Error Alert */}

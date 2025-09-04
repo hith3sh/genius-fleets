@@ -38,8 +38,16 @@ export function AuthProvider({ children }) {
     // Set up auth state change listener
     const { data: authListener } = auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        const currentUser = await User.me();
-        setUser(currentUser);
+        // Check if email is confirmed before setting user
+        if (session.user.email_confirmed_at) {
+          const currentUser = await User.me();
+          setUser(currentUser);
+        } else {
+          // User signed up but email not confirmed - don't set user state
+          // This allows them to stay on verification page
+          console.log('User signed in but email not confirmed yet');
+          setUser(null);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
       }
