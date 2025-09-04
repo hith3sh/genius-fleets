@@ -27,12 +27,36 @@ export default function RecentBookings({ isLoading }) {
 
   const loadBookings = async () => {
     try {
-      // Use default parameters to avoid parameter parsing issues
-      const bookingsData = await Booking.list();
-      const customersData = await Customer.list();
+      console.log('🔍 RecentBookings: Loading bookings and customers...');
       
-      // Sort and limit manually for now
-      const sortedBookings = bookingsData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 6);
+      // Test direct Supabase queries like we did for customers
+      const { supabase } = await import('@/lib/supabase');
+      
+      // Load bookings directly
+      console.log('🔍 RecentBookings: Fetching bookings...');
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('booking')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(6);
+      
+      if (bookingsError) {
+        console.error('❌ RecentBookings: Bookings query failed:', bookingsError);
+        throw bookingsError;
+      }
+      console.log('✅ RecentBookings: Bookings loaded:', bookingsData?.length || 0);
+      
+      // Load customers directly
+      console.log('🔍 RecentBookings: Fetching customers...');
+      const { data: customersData, error: customersError } = await supabase
+        .from('customer')
+        .select('*');
+      
+      if (customersError) {
+        console.error('❌ RecentBookings: Customers query failed:', customersError);
+        throw customersError;
+      }
+      console.log('✅ RecentBookings: Customers loaded:', customersData?.length || 0);
       
       // Create customer lookup
       const customerLookup = {};
@@ -40,10 +64,11 @@ export default function RecentBookings({ isLoading }) {
         customerLookup[customer.id] = customer;
       });
       
-      setBookings(sortedBookings);
+      setBookings(bookingsData || []);
       setCustomers(customerLookup);
     } catch (error) {
-      console.error("Error loading bookings:", error);
+      console.error("❌ RecentBookings: Error loading data:", error);
+      console.error("❌ RecentBookings: Error details:", error.message);
     }
   };
 

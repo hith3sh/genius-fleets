@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../contexts/AuthContext";
 import { Vehicle } from "@/api/entities";
 import { Customer } from "@/api/entities";
 import { Booking } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Car,
   Users,
@@ -12,7 +14,9 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Clock } from
+  Clock,
+  Building2,
+  Settings } from
 "lucide-react";
 
 import DashboardStats from "../components/dashboard/DashboardStats";
@@ -22,6 +26,7 @@ import StatListDialog from "../components/dashboard/StatListDialog";
 
 export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalVehicles: 0,
     availableVehicles: 0,
@@ -145,14 +150,24 @@ export default function Dashboard() {
             Welcome back, {user?.full_name}. Here's your fleet's real-time overview.
           </p>
         </div>
-        <div className="text-right p-4 rounded-xl bg-white/70 backdrop-blur-sm shadow-md border border-white/30">
-          <div className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long' })}</div>
-          <div className="text-lg font-semibold text-violet-800">
-            {new Date().toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
+        <div className="flex gap-3">
+          <Button
+            onClick={() => navigate('/BusinessInfo')}
+            variant="outline"
+            className="bg-white/70 hover:bg-white/90 backdrop-blur-sm border-violet-200 hover:border-violet-300 text-violet-700 hover:text-violet-800"
+          >
+            <Building2 className="w-4 h-4 mr-2" />
+            Business Info
+          </Button>
+          <div className="text-right p-4 rounded-xl bg-white/70 backdrop-blur-sm shadow-md border border-white/30">
+            <div className="text-sm text-gray-500">{new Date().toLocaleDateString('en-US', { weekday: 'long' })}</div>
+            <div className="text-lg font-semibold text-violet-800">
+              {new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </div>
           </div>
         </div>
       </div>

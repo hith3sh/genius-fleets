@@ -44,6 +44,7 @@ import RentCars from "./RentCars";
 import StaffDocuments from "./StaffDocuments";
 import LegalDocuments from "./LegalDocuments";
 import AIDocumentProcessing from "./AIDocumentProcessing";
+import BusinessInfo from "./BusinessInfo";
 
 // Import authentication components
 import Login from "../components/auth/Login";
@@ -103,6 +104,7 @@ const PAGES = {
     StaffDocuments: StaffDocuments,
     LegalDocuments: LegalDocuments,
     AIDocumentProcessing: AIDocumentProcessing,
+    BusinessInfo: BusinessInfo,
 }
 
 function _getCurrentPage(url) {

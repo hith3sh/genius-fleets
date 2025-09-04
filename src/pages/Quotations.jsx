@@ -95,11 +95,22 @@ export default function Quotations() {
       
       console.log('✅ Access granted - loading data...');
       
-      const [quotationsData, customersData, usersData] = await Promise.all([
-        Quotation.list('-created_date'),
-        Customer.list('-created_date'),
-        User.list()
+      // Use direct Supabase queries to avoid BaseEntity issues
+      const { supabase } = await import('@/lib/supabase');
+      
+      const [quotationsResult, customersResult, usersResult] = await Promise.all([
+        supabase.from('quotation').select('*').order('created_at', { ascending: false }),
+        supabase.from('customer').select('*').order('created_at', { ascending: false }),
+        supabase.from('user_access').select('user_email, role, accessible_modules')
       ]);
+      
+      if (quotationsResult.error) throw quotationsResult.error;
+      if (customersResult.error) throw customersResult.error;
+      if (usersResult.error) throw usersResult.error;
+      
+      const quotationsData = quotationsResult.data || [];
+      const customersData = customersResult.data || [];
+      const usersData = usersResult.data || [];
       
       console.log('📋 Loaded quotations:', quotationsData?.length || 0, 'records');
       console.log('👥 Loaded customers:', customersData?.length || 0, 'records');
