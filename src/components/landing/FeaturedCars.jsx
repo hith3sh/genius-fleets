@@ -4,16 +4,17 @@ import { Vehicle } from '@/api/entities';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Define categories based on the Vehicle entity's vehicle_class enum
-const categories = ['All', 'SUV', 'Mid-Size Sedan', 'Hatch Back', 'Sports cars', 'Luxury', 'Economy'];
+// Using lowercase for consistent comparison
+const categories = ['All', 'suv', 'mid-size sedan', 'hatch back', 'sports cars', 'luxury', 'economy'];
 
 // Helper to assign visual styles based on vehicle class for hover effects
 const categoryStyles = {
-    'SUV': { hoverGradient: 'bg-gradient-to-br from-blue-400 to-purple-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(147,112,219,0.4)]' },
-    'Mid-Size Sedan': { hoverGradient: 'bg-gradient-to-br from-gray-400 to-gray-600', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(156,163,175,0.4)]' },
-    'Sports cars': { hoverGradient: 'bg-gradient-to-br from-yellow-400 to-amber-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(252,211,77,0.4)]' },
-    'Luxury': { hoverGradient: 'bg-gradient-to-br from-zinc-700 to-gray-800', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(82,82,91,0.4)]' },
-    'Hatch Back': { hoverGradient: 'bg-gradient-to-br from-sky-400 to-cyan-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(56,189,248,0.4)]' },
-    'Economy': { hoverGradient: 'bg-gradient-to-br from-emerald-500 to-lime-600', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
+    'suv': { hoverGradient: 'bg-gradient-to-br from-blue-400 to-purple-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(147,112,219,0.4)]' },
+    'mid-size sedan': { hoverGradient: 'bg-gradient-to-br from-gray-400 to-gray-600', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(156,163,175,0.4)]' },
+    'sports cars': { hoverGradient: 'bg-gradient-to-br from-yellow-400 to-amber-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(252,211,77,0.4)]' },
+    'luxury': { hoverGradient: 'bg-gradient-to-br from-zinc-700 to-gray-800', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(82,82,91,0.4)]' },
+    'hatch back': { hoverGradient: 'bg-gradient-to-br from-sky-400 to-cyan-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(56,189,248,0.4)]' },
+    'economy': { hoverGradient: 'bg-gradient-to-br from-emerald-500 to-lime-600', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(34,197,94,0.4)]' },
     'default': { hoverGradient: 'bg-gradient-to-br from-stone-400 to-neutral-500', hoverShadow: 'shadow-[0_25px_50px_-12px_rgba(168,162,158,0.4)]' }
 };
 
@@ -26,12 +27,58 @@ export default function FeaturedCars() {
     async function loadVehicles() {
       setIsLoading(true);
       try {
-        const allVehicles = await Vehicle.filter({ status: 'Available' });
-        // Prioritize showing vehicles that have photos
-        const vehiclesWithPhotos = allVehicles.filter(v => v.vehicle_photos && v.vehicle_photos.length > 0);
-        setVehicles(vehiclesWithPhotos.slice(0, 8)); // Display up to 8 featured vehicles
+        console.log("=== Debugging Vehicle Loading ===");
+        
+        // Test direct Supabase connection with detailed logging
+        const { supabase } = await import('@/lib/supabase');
+        
+        // Check authentication status
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log("Current user:", user);
+        console.log("Auth error:", authError);
+        
+        // Test direct query with full error details
+        const { data: directData, error: directError } = await supabase
+          .from('vehicle')
+          .select('*');
+        
+        console.log("Direct query - Data:", directData);
+        console.log("Direct query - Error:", directError);
+        
+        if (directError) {
+          console.log("Error code:", directError.code);
+          console.log("Error message:", directError.message);
+          console.log("Error details:", directError.details);
+          console.log("Error hint:", directError.hint);
+        }
+        
+        // Test with count to see if RLS is blocking
+        const { count, error: countError } = await supabase
+          .from('vehicle')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log("Row count:", count);
+        console.log("Count error:", countError);
+        
+        // Test Entity API
+        try {
+          const allVehicles = await Vehicle.list();
+          console.log("Vehicle.list() result:", allVehicles);
+          
+          if (allVehicles && allVehicles.length > 0) {
+            setVehicles(allVehicles.slice(0, 8));
+          } else {
+            console.log("No vehicles returned from API");
+            setVehicles([]);
+          }
+        } catch (entityError) {
+          console.error("Entity API error:", entityError);
+          setVehicles([]);
+        }
+        
       } catch (error) {
-        console.error("Failed to load vehicles:", error);
+        console.error("General error:", error);
+        setVehicles([]);
       } finally {
         setIsLoading(false);
       }
@@ -39,7 +86,23 @@ export default function FeaturedCars() {
     loadVehicles();
   }, []);
 
-  const filteredVehicles = filter === 'All' ? vehicles : vehicles.filter(car => car.vehicle_class === filter);
+  // Add console logging to debug filter functionality
+  useEffect(() => {
+    console.log("Current filter:", filter);
+    console.log("Available vehicles:", vehicles);
+    console.log("Vehicle classes:", vehicles.map(v => v.vehicle_class));
+  }, [filter, vehicles]);
+
+  // Normalize case for more reliable filtering
+  const normalizedFilter = filter.toLowerCase();
+  
+  const filteredVehicles = filter === 'All' 
+    ? vehicles 
+    : vehicles.filter(car => {
+        // Handle both null/undefined and case sensitivity
+        if (!car.vehicle_class) return false;
+        return car.vehicle_class.toLowerCase() === normalizedFilter;
+      });
 
   return (
     <section id="featured-cars" className="py-20 bg-gray-900">
@@ -69,9 +132,15 @@ export default function FeaturedCars() {
                 <Skeleton className="h-10 w-full rounded-full bg-gray-700" />
               </div>
             ))
+          ) : filteredVehicles.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-400 text-lg">No vehicles available at the moment.</p>
+            </div>
           ) : (
             filteredVehicles.map(vehicle => {
-              const style = categoryStyles[vehicle.vehicle_class] || categoryStyles.default;
+              // Normalize vehicle_class to lowercase for consistent style matching
+              const vehicleClass = vehicle.vehicle_class ? vehicle.vehicle_class.toLowerCase() : 'default';
+              const style = categoryStyles[vehicleClass] || categoryStyles.default;
               const carData = { ...vehicle, ...style };
               return <CarCard key={vehicle.id} car={carData} />;
             })
