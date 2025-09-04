@@ -142,21 +142,30 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     const { user, loading } = useAuth();
     
+    console.log('🌐 PagesContent: Current state:', { 
+        path: location.pathname, 
+        currentPage, 
+        user: user ? 'Authenticated' : 'Not authenticated', 
+        loading 
+    });
+    
     // Show loading state while checking authentication
     if (loading) {
+        console.log('⏳ PagesContent: Still loading, showing spinner...');
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <div className="ml-4 text-gray-600">Loading...</div>
             </div>
         );
     }
 
     // Check if the path is a public route
-    const isPublicRoute = ['/login', '/signup', '/forgot-password', '/verify-email', '/landing-page'].includes(location.pathname.toLowerCase());
+    const isPublicRoute = ['/login', '/signup', '/forgot-password', '/verify-email', '/landing-page', '/rentcars'].includes(location.pathname.toLowerCase());
     
     // If user is authenticated and tries to access auth pages, redirect to dashboard
-    // Exception: allow access to /verify-email even if authenticated but not confirmed
-    if (user && isPublicRoute && location.pathname.toLowerCase() !== '/landing-page' && location.pathname.toLowerCase() !== '/verify-email') {
+    // Exception: allow access to /verify-email, /landing-page, and /rentcars even if authenticated
+    if (user && isPublicRoute && !['/landing-page', '/verify-email', '/rentcars'].includes(location.pathname.toLowerCase())) {
         return <Navigate to="/dashboard" replace />;
     }
     
@@ -168,6 +177,7 @@ function PagesContent() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/landing-page" element={<LandingPage />} />
+            <Route path="/RentCars" element={<RentCars />} />
             
             {/* Root route - redirect to landing page for non-authenticated users */}
             <Route path="/" element={
@@ -193,7 +203,7 @@ function PagesContent() {
             
             {/* Generate protected routes for all pages */}
             {Object.keys(PAGES).map(pageName => {
-                if (pageName === 'Dashboard' || pageName === 'LandingPage') return null; // Already handled
+                if (pageName === 'Dashboard' || pageName === 'LandingPage' || pageName === 'RentCars') return null; // Already handled
                 
                 const requiredModule = MODULE_ACCESS[pageName];
                 

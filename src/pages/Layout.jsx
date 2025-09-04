@@ -303,18 +303,27 @@ export default function Layout({ children, currentPageName }) {
         // Scenario 2: User is authenticated from a previous session but is on a protected page.
         // We set up their access rights but DO NOT redirect them from the landing page.
         if (currentPageName !== 'LandingPage') {
+            console.log('Current user role from User.me():', currentUser.role);
             if (currentUser.role === 'Management') {
-              setUserAccess({ accessible_modules: 'all' });
+              console.log('Setting Management access');
+              setUserAccess({ accessible_modules: 'all', role: 'Management' });
             } else if (currentUser.role !== 'Customer') { // Staff users
+              // For staff users, the role and access info should already be loaded from the User.me() call
+              // But we still need to check if they have an access record
               const accessRecords = await UserAccess.filter({ user_email: currentUser.email });
+              console.log('Access records found:', accessRecords);
               if (accessRecords.length > 0) {
+                console.log('Setting userAccess from database record:', accessRecords[0]);
                 setUserAccess(accessRecords[0]);
               } else {
-                // If no access rules are found, set access to null.
-                // This prevents the creation of a confusing default rule.
-                // The user will see an empty sidebar or a welcome screen,
-                // indicating that an admin needs to assign their permissions.
-                setUserAccess(null);
+                // If no access rules are found, set access based on their role from User.me()
+                const fallbackAccess = {
+                  role: currentUser.role,
+                  accessible_modules: currentUser.accessible_modules || [],
+                  user_email: currentUser.email
+                };
+                console.log('Setting fallback userAccess:', fallbackAccess);
+                setUserAccess(fallbackAccess);
               }
             }
         }
@@ -344,25 +353,31 @@ export default function Layout({ children, currentPageName }) {
   
   const hasAccess = (navItem) => {
     // Rule 1: Management role has access to everything.
+    if (userAccess?.role === 'Management') return true;
+    
+    // Rule 2: Legacy support for 'all' modules (for backward compatibility)
     if (userAccess?.accessible_modules === 'all') return true;
     
-    // Rule 2: If there are no modules defined, access is denied.
-    if (!userAccess?.accessible_modules) return false;
+    // Rule 3: If no userAccess or user is not assigned a role, deny access
+    if (!userAccess || !userAccess.role) return false;
+    
+    // Rule 4: If accessible_modules is not an array, deny access
+    if (!Array.isArray(userAccess.accessible_modules)) return false;
 
     const modules = userAccess.accessible_modules;
 
-    // Rule 3: For parent menu items, grant access if AT LEAST ONE child is accessible.
+    // Rule 5: For parent menu items, grant access if AT LEAST ONE child is accessible.
     if (navItem.subItems) {
       return navItem.subItems.some((sub) => sub.page && modules.includes(sub.page));
     }
 
-    // Rule 4: For individual menu items, grant access if the page name is in the user's list.
+    // Rule 6: For individual menu items, grant access if the page name is in the user's list.
     return navItem.page ? modules.includes(navItem.page) : false;
   };
   
   // Determine if the sidebar trigger (hamburger menu) should be visible
   const shouldShowSidebarTrigger = () => {
-    if (!userAccess || userAccess.accessible_modules === 'all') {
+    if (!userAccess || userAccess.role === 'Management' || userAccess.accessible_modules === 'all') {
       return true; // Show for Management or if access isn't determined yet
     }
     if (Array.isArray(userAccess.accessible_modules)) {
@@ -506,7 +521,7 @@ export default function Layout({ children, currentPageName }) {
           </header>
 
           <div className="flex-1 overflow-auto">
-            {currentPageName === 'Dashboard' && !hasAccess({ page: 'Dashboard' }) ?
+            {currentPageName === 'Dashboard' && (userAccess?.role !== 'Management' && !hasAccess({ page: 'Dashboard' })) ?
               <WelcomeScreen user={user} /> :
               children
             }

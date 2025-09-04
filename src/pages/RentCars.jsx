@@ -88,7 +88,7 @@ export default function RentCars() {
   const handleRentNow = (vehicle) => {
     // Store selected vehicle in localStorage and redirect to booking
     localStorage.setItem('selectedVehicle', JSON.stringify(vehicle));
-    window.location.href = createPageUrl('MobileBooking');
+    window.location.href = '/MobileBooking';
   };
 
   const VehicleCard = ({ vehicle }) => {

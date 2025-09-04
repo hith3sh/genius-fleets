@@ -107,6 +107,7 @@ export default function UserAccessRules() {
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     user_email: '',
+    role: 'Staff',
     accessible_modules: []
   });
 
@@ -148,6 +149,7 @@ export default function UserAccessRules() {
     setEditingRule(rule);
     setFormData({
       user_email: rule.user_email,
+      role: rule.role || 'Staff',
       accessible_modules: rule.accessible_modules || []
     });
     setShowForm(true);
@@ -167,6 +169,7 @@ export default function UserAccessRules() {
   const resetForm = () => {
     setFormData({
       user_email: '',
+      role: 'Staff',
       accessible_modules: []
     });
     setEditingRule(null);
@@ -270,10 +273,12 @@ export default function UserAccessRules() {
                       <h3 className="text-lg font-semibold">{user.full_name || 'Unknown User'}</h3>
                       <p className="text-gray-600">{user.email}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline">{user.role || 'User'}</Badge>
+                        <Badge variant="outline">
+                          {accessRule?.role || 'No Role Assigned'}
+                        </Badge>
                         {accessRule ? (
                           <Badge className="bg-green-100 text-green-800">
-                            {accessRule.accessible_modules?.length || 0} modules
+                            {accessRule.role === 'Management' ? 'All modules' : `${accessRule.accessible_modules?.length || 0} modules`}
                           </Badge>
                         ) : (
                           <Badge variant="destructive">No access rule</Badge>
@@ -306,7 +311,7 @@ export default function UserAccessRules() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          setFormData({ user_email: user.email, accessible_modules: [] });
+                          setFormData({ user_email: user.email, role: 'Staff', accessible_modules: [] });
                           setShowForm(true);
                         }}
                       >
@@ -380,10 +385,41 @@ export default function UserAccessRules() {
                 </div>
 
                 <div>
+                  <Label htmlFor="role" className="text-base font-semibold">User Role</Label>
+                  <Select
+                    value={formData.role}
+                    onValueChange={(value) => setFormData({ ...formData, role: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Staff">Staff</SelectItem>
+                      <SelectItem value="Manager">Manager</SelectItem>
+                      <SelectItem value="Sales Executive">Sales Executive</SelectItem>
+                      <SelectItem value="HR Admin">HR Admin</SelectItem>
+                      <SelectItem value="Finance Manager">Finance Manager</SelectItem>
+                      <SelectItem value="Fleet Manager">Fleet Manager</SelectItem>
+                      <SelectItem value="Management">Management (Full Access)</SelectItem>
+                      <SelectItem value="Customer">Customer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {formData.role === 'Management' && "Management role grants access to all modules regardless of selections below."}
+                    {formData.role === 'Customer' && "Customer role provides limited access to booking functionalities."}
+                    {!['Management', 'Customer'].includes(formData.role) && "Select specific modules this user can access below."}
+                  </p>
+                </div>
+
+                <div>
                   <Label className="text-base font-semibold">Module Access Permissions</Label>
-                  <p className="text-sm text-gray-600 mb-4">Select which modules this user can access</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {formData.role === 'Management' 
+                      ? "Management role automatically has access to all modules" 
+                      : "Select which modules this user can access"}
+                  </p>
                   
-                  <div className="space-y-6">
+                  <div className={`space-y-6 ${formData.role === 'Management' ? 'opacity-50 pointer-events-none' : ''}`}>
                     {moduleCategories.map((category) => {
                       const isFullySelected = isCategoryFullySelected(category.modules);
                       const isPartiallySelected = isCategoryPartiallySelected(category.modules);

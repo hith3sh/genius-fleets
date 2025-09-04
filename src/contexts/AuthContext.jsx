@@ -15,20 +15,28 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        console.log('🔄 AuthContext: Starting user load...');
         setLoading(true);
+        
+        console.log('🔍 AuthContext: Getting session...');
         const { session } = await auth.getSession();
+        console.log('📋 AuthContext: Session result:', session ? 'Found' : 'None');
         
         if (session) {
+          console.log('👤 AuthContext: Session found, getting user details...');
           const currentUser = await User.me();
+          console.log('✅ AuthContext: User loaded:', currentUser ? 'Success' : 'Failed');
           setUser(currentUser);
         } else {
+          console.log('🚫 AuthContext: No session, setting user to null');
           setUser(null);
         }
       } catch (err) {
-        console.error('Error loading user:', err);
+        console.error('❌ AuthContext: Error loading user:', err);
         setError(err.message);
         setUser(null);
       } finally {
+        console.log('🏁 AuthContext: User load complete, setting loading to false');
         setLoading(false);
       }
     };

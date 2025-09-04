@@ -11,13 +11,19 @@ class User extends BaseEntity {
    * @returns {Promise<object>} - The user data
    */
   async me() {
+    console.log('🔍 User.me(): Getting current user...');
     const { user, error } = await auth.getCurrentUser();
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ User.me(): Error getting current user:', error);
+      throw error;
+    }
+    
+    console.log('👤 User.me(): Current user from auth:', user ? 'Found' : 'None');
     
     // If user exists but email not confirmed, return null to keep them unauth
     if (user && !user.email_confirmed_at) {
-      console.log('User exists but email not confirmed');
+      console.log('User exists in Supabase auth but email not confirmed - keeping unauthenticated for verification flow');
       return null;
     }
     
@@ -26,17 +32,23 @@ class User extends BaseEntity {
       try {
         const { data, error: accessError } = await supabase
           .from('user_access')
-          .select('user_email, accessible_modules')
+          .select('user_email, accessible_modules, role')
           .eq('user_email', user.email)
           .maybeSingle();
         
         if (accessError) {
           console.warn('Error fetching user access:', accessError);
-          // Return basic user info if access info can't be retrieved
+          // Still need to check email confirmation even if access error
+          if (!user.email_confirmed_at) {
+            console.log('User exists in auth but email not confirmed (access error case)');
+            return null;
+          }
+          // Return basic user info if access info can't be retrieved but email confirmed
           return {
             id: user.id,
             email: user.email,
-            role: 'User',
+            full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+            role: 'Staff', // Default role when no access record found
             accessible_modules: [],
             created_at: user.created_at,
             last_sign_in_at: user.last_sign_in_at
@@ -47,18 +59,26 @@ class User extends BaseEntity {
         return {
           id: user.id,
           email: user.email,
-          role: 'User', // Default role since we're not storing it in DB
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          role: data?.role || 'Staff', // Use role from database or default to Staff
           accessible_modules: data?.accessible_modules || [],
           created_at: user.created_at,
-          last_sign_in_at: user.last_sign_in_at
+          last_sign_in_at: user.last_sign_in_at,
+          email_confirmed: !!user.email_confirmed_at
         };
       } catch (err) {
         console.error('Error in me() method:', err);
-        // Return basic user info if access info can't be retrieved
+        // Still need to check email confirmation even in catch case
+        if (!user.email_confirmed_at) {
+          console.log('User exists in auth but email not confirmed (catch case)');
+          return null;
+        }
+        // Return basic user info if access info can't be retrieved but email confirmed
         return {
           id: user.id,
           email: user.email,
-          role: 'User',
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          role: 'Staff', // Default role when no access record found
           accessible_modules: [],
           created_at: user.created_at,
           last_sign_in_at: user.last_sign_in_at
@@ -138,9 +158,9 @@ class User extends BaseEntity {
   }
 
   /**
-   * Update user access
+   * Update user access and role
    * @param {string} email - User email
-   * @param {object} accessData - Access data to update
+   * @param {object} accessData - Access data to update (includes role and accessible_modules)
    * @returns {Promise<object>} - The updated access data
    */
   async updateAccess(email, accessData) {
@@ -163,10 +183,17 @@ class User extends BaseEntity {
       if (error) throw error;
       return data;
     } else {
-      // Create new record
+      // Create new record with default role if not provided
+      const recordData = {
+        user_email: email,
+        role: accessData.role || 'Staff',
+        accessible_modules: accessData.accessible_modules || [],
+        ...accessData
+      };
+      
       const { data, error } = await supabase
         .from('user_access')
-        .insert([{ user_email: email, ...accessData }])
+        .insert([recordData])
         .select()
         .single();
       
@@ -185,11 +212,26 @@ class User extends BaseEntity {
     
     if (!user) return false;
     
-    // Admin role has access to everything
-    if (user.role === 'Admin') return true;
+    // Management role has access to everything
+    if (user.role === 'Management') return true;
     
     // Check if the module is in the user's accessible_modules
     return user.accessible_modules.includes(module);
+  }
+
+  /**
+   * Get all users for user management (excluding Management role users)
+   * @returns {Promise<Array>} - Array of users
+   */
+  async getAllUsers() {
+    const { data, error } = await supabase
+      .from('user_access')
+      .select('user_email, role, accessible_modules, created_at, updated_at')
+      .neq('role', 'Management')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
   }
 }
 

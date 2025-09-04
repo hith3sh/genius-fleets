@@ -14,11 +14,11 @@ export default function Header() {
 
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'Rent Cars', href: createPageUrl('RentCars') },
-    { name: 'Cars for Sale', href: '#contact' },
-    { name: 'Promotions', href: '#promotions' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Home', href: '/landing-page', isInternal: true },
+    { name: 'Rent Cars', href: '/RentCars', isInternal: true },
+    { name: 'Cars for Sale', href: '#contact', isInternal: false },
+    { name: 'Promotions', href: '#promotions', isInternal: false },
+    { name: 'Contact', href: '#contact', isInternal: false },
   ];
 
   return (
@@ -34,9 +34,15 @@ export default function Header() {
           </a>
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <a key={link.name} href={link.href} className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
-                {link.name}
-              </a>
+              link.isInternal ? (
+                <Link key={link.name} to={link.href} className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                  {link.name}
+                </Link>
+              ) : (
+                <a key={link.name} href={link.href} className="text-sm font-medium text-gray-300 hover:text-white transition-colors">
+                  {link.name}
+                </a>
+              )
             ))}
           </nav>
           <Link to="/login">
