@@ -52,6 +52,9 @@ import ForgotPassword from "../components/auth/ForgotPassword";
 import EmailVerification from "../components/auth/EmailVerification";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
+// Import error components
+import NotFoundPage from "../components/errors/NotFoundPage";
+
 import { BrowserRouter as Router, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from "../contexts/AuthContext";
 
@@ -176,6 +179,9 @@ function PagesContent() {
                 ) : <Navigate to="/landing-page" replace />
             } />
             
+            {/* Explicit landing page route to handle direct access */}
+            <Route path="/landingpage" element={<Navigate to="/landing-page" replace />} />
+            
             <Route path="/dashboard" element={
                 <ProtectedRoute>
                     <Layout currentPageName={currentPage}>
@@ -205,10 +211,8 @@ function PagesContent() {
                 );
             })}
             
-            {/* Catch all route - redirect to dashboard if logged in, otherwise to landing page */}
-            <Route path="*" element={
-                user ? <Navigate to="/dashboard" replace /> : <Navigate to="/landing-page" replace />
-            } />
+            {/* Catch all route - show 404 for unknown routes */}
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 }

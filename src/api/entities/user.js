@@ -99,7 +99,25 @@ class User extends BaseEntity {
   async signIn(email, password) {
     const { data, error } = await auth.signIn(email, password);
     
-    if (error) throw error;
+    if (error) {
+      // Create a more descriptive error message based on Supabase error
+      const supabaseError = error.message || error.toString();
+      
+      // Map common Supabase auth errors to user-friendly messages
+      if (supabaseError.includes('Invalid login credentials')) {
+        throw new Error('Invalid login credentials');
+      } else if (supabaseError.includes('Email not confirmed')) {
+        throw new Error('Email not confirmed');
+      } else if (supabaseError.includes('Too many requests')) {
+        throw new Error('Too many requests');
+      } else if (supabaseError.includes('User not found')) {
+        throw new Error('User not found');
+      } else {
+        // Pass through the original error message
+        throw error;
+      }
+    }
+    
     return data;
   }
 

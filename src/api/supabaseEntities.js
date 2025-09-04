@@ -30,14 +30,20 @@ class SupabaseEntity {
   }
 
   async create(item) {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .insert(item)
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from(this.tableName)
+        .insert(item)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return data
+    } catch (error) {
+      // Import error handler when needed
+      const { handleSupabaseError } = await import('../utils/errorHandler.js');
+      throw handleSupabaseError(error);
+    }
   }
 
   async update(id, updates) {

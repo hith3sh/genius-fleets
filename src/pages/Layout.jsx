@@ -229,8 +229,9 @@ function CustomerPortalLayout({ children }) {
     } catch (error) {
       console.error("An error occurred during logout:", error);
     } finally {
-      // Always redirect to the landing page to ensure a clean state
-      window.location.href = createPageUrl('LandingPage');
+      // Always redirect to the root to ensure a clean state
+      // The routing logic will handle redirecting to landing page
+      window.location.href = '/';
     }
   };
 
@@ -388,9 +389,10 @@ export default function Layout({ children, currentPageName }) {
     {
       console.error("An error occurred during logout:", error);
     } finally {
-      // ALWAYS redirect to the landing page to ensure a clean state
+      // ALWAYS redirect to the root to ensure a clean state
       // This forces a full reload, clearing all component state.
-      window.location.href = createPageUrl('LandingPage');
+      // The routing logic will handle redirecting to landing page
+      window.location.href = '/';
     }
   };
 
