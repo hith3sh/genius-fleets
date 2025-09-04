@@ -37,10 +37,8 @@ export default function Customers() {
 
   const checkUserRole = async () => {
     try {
-      // User entity is already imported at the top
       const user = await User.me();
       setUserRole(user.role);
-      console.log('Current user role:', user.role);
     } catch (error) {
       console.error('Error getting user role:', error);
     }
@@ -49,11 +47,14 @@ export default function Customers() {
   const loadCustomers = async () => {
     setIsLoading(true);
     try {
-      console.log('Loading customers...'); // Added log
-      // Try without ordering first to isolate the issue
-      const data = await Customer.list();
-      console.log('Customers loaded:', data.length, 'customers found'); // Added log
-      console.log('Customer data:', data); // Added log
+      const { supabase } = await import('@/lib/supabase');
+      const { data, error } = await supabase
+        .from('customer')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
       setCustomers(data);
     } catch (error) {
       console.error('Error loading customers:', error);

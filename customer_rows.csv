@@ -1,0 +1,42 @@
+id,name,email,phone,license_number,address,customer_type,status,tags,residency_status,driving_license_url,passport_url,emirates_id_url,created_at,updated_at
+019de787-ef5b-40d6-9867-c3dd217589d2,Ahmed Al Mansouri,ahmed.almansouri@email.com,+971 50 123 4567,12345678,"Dubai Marina, Dubai, UAE",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+0f2b97de-5ed7-4716-95c6-f0e45927be76,aaaaaaa,aaaaa@gmail.com,+971555555555,,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+12c44cba-9b0d-42dc-b0e5-3773ee023d1e,Gabesh Shah,gabesh@gmail.com,+971502402200,,"Flat 111, Hasani 19",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+21d3ad6a-6671-4c15-9030-30f731306e9e,ABC Xghhhh,abc@gmail.com,+971562220222,ABC1234,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+2ea62973-9711-4fb3-8147-c7a6bb50b6ef,Emirates Business Solutions,contact@emiratesbiz.com,+971 4 567 8900,,"Business Bay, Dubai, UAE",Corporate,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+381b1e79-a2a6-40f3-8de5-16c81cdd32b6,Roosewalt Pereira,roosewalt@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+39f090b8-0d29-4a5b-95e4-3957aaec30ba,DDD trading LLC,ddd@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+402be2e9-b8fd-4bbf-8c3f-5c98245d8202,Ahmed Khalid Al Mansoori,ahmed.mansoori@example.com,502345678,DUB123456,"Villa 12, Jumeirah 1, Dubai",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+410f8600-f778-4d3b-aba8-273fdd293211,Mohammed Hassan,mohammed.hassan@email.com,+971 50 345 6789,11223344,"Al Barsha, Dubai, UAE",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+42ce1dc9-2f51-481b-b260-cd05b78e2f36,Roman Bhat,roman111@gmail.com,+971562440440,ABC1234,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+44ea7aa9-cb3a-4b75-8c05-5e6610ed6d5f,Sarah Johnson,sarah.johnson@email.com,+971 55 234 5678,87654321,"Jumeirah Beach Residence, Dubai, UAE",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+4580c21b-69c6-4c4d-be99-81870977ef22,Fatima Hassan El Sayed,fatima.elsayed@example.com,+971567654321,DUB345678,"Apt 902, Al Nahda, Dubai",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+4a8e72b3-fcaa-466d-b39d-a84b4a310c59,Michael Andrew Smith,michael.smith@example.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+553008e2-8f6e-4731-8d91-7d6e387bd8b8,Google enterprises,google@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+6243eb36-5f34-482d-b267-185ac847d25a,Fatima Al Zahra,fatima.alzahra@email.com,+971 56 456 7890,55667788,"Downtown Dubai, Dubai, UAE",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+67e74177-62b4-4f2a-bb6c-bf1ffc19c9fe,Lexus Auto LLC,roosewalt@geniushands.ae,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+6db9c7c4-5ae4-47dc-b7d5-f9586ab6aca4,Test booking,help@joboy.,582628980,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+70f8154a-b275-4e9d-9cfd-a9a94ceb2d56,Roosewalt Sabestian Pereira,roosewalt@gmail.com,0562440200,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+734fff24-2a40-4d2d-8da1-f362a91eb913,Amazon Corp,amazon@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+804b8df4-850b-4ea6-bc32-96c3f4310ee7,ABCD LLC,abvgalt@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+82408aa6-e6d2-49bb-a382-abf89d2364e6,Test,test,Test,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+84454752-80ad-40eb-bfb5-0b6354c72b80,Ahmed Khalid Al Mansoori,ahmed.mansoori@example.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+8df6e6ef-b473-4260-80e3-f61e5bb31013,Priya Ramesh Nair,priya.nair@example.com,+971523456789,,"Apt 405, Bur Dubai, Dubai",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+8fab467d-f7a3-4403-9ac1-12154e293b84,Ahmed Shah,as123@gmail.com,+971562000200,ABC1234,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+a5b35a6c-2269-440f-a733-0e1a569e9a3d,Lal Sebastian,lalchempakathinal@gmail.com,+971000000000,,Street No. 25,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+aa8f6057-8fa1-44b3-bf9b-7eb860edd459,Amazon Corp,vbbbsewalt@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+abd85f65-c080-4615-8788-a65cd7edcb02,Ganesh Shah,Gshah12@gmail.com,+971562440222,ABC1234,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+b536cd0d-9c5c-4b26-b70f-573351535efc,Roosewalt Sabestian Pereira,blogger.pereira@gmail.com,0562440200,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+b81b31db-525a-4e23-b179-63c3f512bf20,kkkk hhhhh,gggg@gmail.com,+971562440022,ABC1234,"Flat 111, Hasani 19
+Doha Street",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+b9caf5ee-e010-49b8-85f9-206b107254d7,Majid ABdul,majid1212@gmail.com,+971123456789,,903 Al Saud Bldg 2,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+cde86c3e-ef33-471e-b04d-badb00ec344b,Google enterprises,ggggalt@gmail.com,,,,Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+d0e18764-a369-4cbb-af5d-18457de10fe9,John Smith,john.smith@email.com,+971-50-123-4567,DL12345678,"123 Business Bay, Dubai, UAE",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+f277d6b1-6b93-4612-9748-eaad82b5c915,Ahmed Khalid Al Mansoori,ahmed.mansoori@example.com,+971502345678,,"Villa 12, Jumeirah 1, Dubai",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+f5dee011-0dfe-47a9-bc90-945d108413a1,Zhang Wei,zhang.wei@example.com,+971583214567,DUB901234,"International City, China Cluster, Dubai",Corporate,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
+f7a597ad-5ec1-4b3b-85a5-5e1e1fc52490,Ahmed Khalid Al Mansoori,ahmed.mansoori@example.com,+971502345678,,"Villa 12, Jumeirah 1, Dubai",Individual,Active,,,,,,2025-09-03 07:14:56.551062+00,2025-09-03 07:14:56.551062+00
