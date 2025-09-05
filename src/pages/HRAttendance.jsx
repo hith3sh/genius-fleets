@@ -30,7 +30,7 @@ export default function HRAttendance() {
     const [emps, shfts, atts] = await Promise.all([
       Employee.list(),
       Shift.list(),
-      Attendance.list('-date')
+      Attendance.list()
     ]);
     setEmployees(emps);
     setShifts(shfts);

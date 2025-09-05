@@ -28,7 +28,7 @@ export default function HRLeaveRequests() {
     setIsLoading(true);
     try {
       const [requests, emps, user] = await Promise.all([
-        LeaveRequest.list('-created_date'),
+        LeaveRequest.list(),
         Employee.list(),
         User.me()
       ]);

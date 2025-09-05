@@ -23,7 +23,7 @@ export default function HRPayroll() {
 
   const fetchData = async () => {
     const [history, emps] = await Promise.all([
-      Payroll.list('-processing_date'),
+      Payroll.list(),
       Employee.list()
     ]);
     setPayrollHistory(history);

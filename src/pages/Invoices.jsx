@@ -85,7 +85,7 @@ export default function Invoices() {
   const loadInvoices = async () => {
     setIsLoading(true);
     try {
-      const data = await Invoice.list('-created_date');
+      const data = await Invoice.list();
       setInvoices(data);
     } catch (error) {
       console.error('Error loading invoices:', error);

@@ -18,7 +18,7 @@ export default function Expenses() {
 
   const loadExpenses = async () => {
     setIsLoading(true);
-    const data = await Expense.list('-expense_date');
+    const data = await Expense.list();
     setExpenses(data);
     setIsLoading(false);
   };

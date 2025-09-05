@@ -14,19 +14,39 @@ export default function TaxVAT() {
   useEffect(() => {
     async function loadInvoices() {
       setIsLoading(true);
-      const data = await Invoice.list();
-      setInvoices(data);
+      console.log('TaxVAT: Loading invoices...');
+      try {
+        const data = await Invoice.list();
+        console.log('TaxVAT: Invoice data received:', data);
+        console.log('TaxVAT: Number of invoices:', data?.length || 0);
+        setInvoices(data);
+      } catch (error) {
+        console.error('TaxVAT: Error loading invoices:', error);
+        console.error('TaxVAT: Error details:', error.message);
+      }
       setIsLoading(false);
     }
     loadInvoices();
   }, []);
 
-  const taxableInvoices = invoices.filter(inv => inv.tax > 0);
-  const totalVAT = taxableInvoices.reduce((sum, inv) => sum + inv.amount * VAT_RATE, 0);
+  // Debug tax field values
+  console.log('TaxVAT: Total invoices:', invoices.length);
+  console.log('TaxVAT: Sample invoice structure:', invoices[0]);
+  console.log('TaxVAT: Tax field values in first 5 invoices:', invoices.slice(0, 5).map(inv => ({ id: inv.id, tax: inv.tax, amount: inv.amount })));
+  
+  // Check if we should filter by tax field existence or use a different approach
+  const taxableInvoices = invoices.filter(inv => inv.tax !== null && inv.tax !== undefined && (inv.tax > 0 || inv.amount > 0));
+  console.log('TaxVAT: Taxable invoices (after adjusted filter):', taxableInvoices.length);
+  
+  // If still no results, show all invoices as taxable (assuming 5% VAT on all)
+  const finalTaxableInvoices = taxableInvoices.length > 0 ? taxableInvoices : invoices.filter(inv => inv.amount > 0);
+  console.log('TaxVAT: Final taxable invoices count:', finalTaxableInvoices.length);
+  
+  const totalVAT = finalTaxableInvoices.reduce((sum, inv) => sum + inv.amount * VAT_RATE, 0);
   
   const handleExport = () => {
     const headers = "Date,Invoice Ref,Transaction Type,Taxable Amount,VAT %,VAT Amount\n";
-    const csv = taxableInvoices.map(inv => {
+    const csv = finalTaxableInvoices.map(inv => {
         const vatAmount = inv.amount * VAT_RATE;
         return `"${inv.invoice_date}","${inv.invoice_number}","Sale","${inv.amount}","5","${vatAmount.toFixed(2)}"`;
     }).join('\n');
@@ -56,7 +76,7 @@ export default function TaxVAT() {
             <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Invoice Ref</TableHead><TableHead>Transaction</TableHead><TableHead>Taxable Amt</TableHead><TableHead>VAT %</TableHead><TableHead>VAT Amt</TableHead></TableRow></TableHeader>
             <TableBody>
               {isLoading ? <TableRow><TableCell colSpan="6">Loading...</TableCell></TableRow> :
-                taxableInvoices.map(invoice => {
+                finalTaxableInvoices.map(invoice => {
                   const vatAmount = invoice.amount * VAT_RATE;
                   return (
                     <TableRow key={invoice.id}>

@@ -17,7 +17,7 @@ export default function Payments() {
 
   const loadPayments = async () => {
     setIsLoading(true);
-    const data = await Payment.list('-payment_date');
+    const data = await Payment.list();
     setPayments(data);
     setIsLoading(false);
   };

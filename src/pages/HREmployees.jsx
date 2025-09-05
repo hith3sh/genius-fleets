@@ -36,19 +36,30 @@ export default function HREmployees() {
   }, []);
 
   useEffect(() => {
+    console.log('Filtering employees. Total employees:', employees.length);
+    console.log('Search term:', searchTerm);
     let filtered = employees.filter(emp => 
       emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.designation.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    console.log('Filtered employees count:', filtered.length);
     setFilteredEmployees(filtered);
   }, [searchTerm, employees]);
 
   const loadEmployees = async () => {
     setIsLoading(true);
-    const data = await Employee.list('-created_date');
-    setEmployees(data);
+    console.log('Loading employees...');
+    try {
+      const data = await Employee.list();
+      console.log('Employee data received:', data);
+      console.log('Number of employees:', data?.length || 0);
+      setEmployees(data);
+    } catch (error) {
+      console.error('Error loading employees:', error);
+      console.error('Error details:', error.message);
+    }
     setIsLoading(false);
   };
 
