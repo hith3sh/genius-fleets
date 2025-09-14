@@ -53,6 +53,7 @@ export default function SalesPerformance() {
   const [selectedRep, setSelectedRep] = useState('all');
   const [dateRange, setDateRange] = useState('6months');
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   const dummyData = useMemo(() => generateDummyData(), []);
 
@@ -92,6 +93,112 @@ export default function SalesPerformance() {
 
   const kpis = calculateKPIs();
 
+  const exportReport = () => {
+    setIsExporting(true);
+    
+    try {
+      // Prepare data for export
+      const exportData = {
+        summary: {
+          totalRevenue: kpis.totalRevenue,
+          leadsGenerated: kpis.leadsGenerated,
+          conversionRate: kpis.conversionRate,
+          quotationsSent: kpis.quotationsSent
+        },
+        monthlyData: dummyData.monthlyRevenueData,
+        leadStatusData: dummyData.leadStatusData,
+        repPerformanceData: dummyData.repPerformanceData,
+        actualLeads: leads,
+        actualQuotations: quotations,
+        actualCustomers: customers
+      };
+
+      // Create CSV content
+      let csvContent = 'Sales Performance Report\n';
+      csvContent += `Generated on: ${new Date().toLocaleString()}\n\n`;
+      
+      // Summary section
+      csvContent += 'SUMMARY\n';
+      csvContent += 'Metric,Value\n';
+      csvContent += `Total Revenue,AED ${exportData.summary.totalRevenue.toLocaleString()}\n`;
+      csvContent += `Leads Generated,${exportData.summary.leadsGenerated}\n`;
+      csvContent += `Conversion Rate,${exportData.summary.conversionRate}%\n`;
+      csvContent += `Quotations Sent,${exportData.summary.quotationsSent}\n\n`;
+      
+      // Monthly revenue data
+      csvContent += 'MONTHLY REVENUE DATA\n';
+      csvContent += 'Month,Revenue,Leads,Conversions\n';
+      exportData.monthlyData.forEach(month => {
+        csvContent += `${month.month},${month.revenue},${month.leads},${month.conversions}\n`;
+      });
+      csvContent += '\n';
+      
+      // Lead status distribution
+      csvContent += 'LEAD STATUS DISTRIBUTION\n';
+      csvContent += 'Status,Count,Percentage\n';
+      exportData.leadStatusData.forEach(status => {
+        csvContent += `${status.name},${status.value},${status.percentage}%\n`;
+      });
+      csvContent += '\n';
+      
+      // Sales rep performance
+      csvContent += 'SALES REP PERFORMANCE\n';
+      csvContent += 'Name,Leads Generated,Leads Converted,Revenue,Quotations Sent,Quotations Accepted\n';
+      exportData.repPerformanceData.forEach(rep => {
+        csvContent += `${rep.name},${rep.leadsGenerated},${rep.leadsConverted},${rep.revenue},${rep.quotationsSent},${rep.quotationsAccepted}\n`;
+      });
+      csvContent += '\n';
+      
+      // Actual leads data (if available)
+      if (exportData.actualLeads.length > 0) {
+        csvContent += 'ACTUAL LEADS DATA\n';
+        csvContent += 'ID,Name,Email,Phone,Status,Source,Created Date\n';
+        exportData.actualLeads.forEach(lead => {
+          csvContent += `${lead.id || 'N/A'},${lead.name || 'N/A'},${lead.email || 'N/A'},${lead.phone || 'N/A'},${lead.status || 'N/A'},${lead.source || 'N/A'},${lead.created_at || 'N/A'}\n`;
+        });
+        csvContent += '\n';
+      }
+      
+      // Actual quotations data (if available)
+      if (exportData.actualQuotations.length > 0) {
+        csvContent += 'ACTUAL QUOTATIONS DATA\n';
+        csvContent += 'ID,Customer,Vehicle,Total Amount,Status,Created Date\n';
+        exportData.actualQuotations.forEach(quotation => {
+          csvContent += `${quotation.id || 'N/A'},${quotation.customer_name || 'N/A'},${quotation.vehicle_details || 'N/A'},${quotation.total_amount || 'N/A'},${quotation.status || 'N/A'},${quotation.created_at || 'N/A'}\n`;
+        });
+        csvContent += '\n';
+      }
+
+      const content = csvContent;
+      const mimeType = 'text/csv;charset=utf-8;';
+      const fileExtension = 'csv';
+      const timestamp = new Date().toISOString().split('T')[0];
+
+      // Create and download the file
+      const blob = new Blob([content], { type: mimeType });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `sales_performance_report_${timestamp}.${fileExtension}`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL object
+      URL.revokeObjectURL(url);
+      
+      // Show success message
+      alert('Sales performance report exported successfully as CSV!');
+      
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      alert('Error exporting report. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -119,9 +226,14 @@ export default function SalesPerformance() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            onClick={exportReport}
+            disabled={isExporting}
+            className="min-w-[140px]"
+          >
             <Download className="w-4 h-4 mr-2" />
-            Export Report
+            {isExporting ? 'Exporting...' : 'Export CSV'}
           </Button>
         </div>
       </div>

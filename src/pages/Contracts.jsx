@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { VehicleContract } from '@/api/entities';
-import { Vehicle } from '@/api/entities';
+import VehicleContract from '@/api/entities/vehicleContract';
+import Vehicle from '@/api/entities/vehicle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -52,16 +52,63 @@ export default function Contracts() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [contractsData, vehiclesData] = await Promise.all([
-        VehicleContract.list('-created_date'),
-        Vehicle.list()
-      ]);
+      // Multi-level fallback loading for contracts
+      let contractsData = [];
+      try {
+        contractsData = await VehicleContract.list('-created_at');
+      } catch (contractError) {
+        console.warn('Primary contract loading failed, trying alternative ordering:', contractError);
+        try {
+          contractsData = await VehicleContract.list('-start_date');
+        } catch (contractError2) {
+          console.warn('Alternative contract ordering failed, trying without ordering:', contractError2);
+          try {
+            contractsData = await VehicleContract.list();
+          } catch (contractError3) {
+            console.warn('Entity method failed, trying direct Supabase query:', contractError3);
+            const { supabase } = await import('@/lib/supabase');
+            const { data } = await supabase.from('vehicle_contract').select('*').order('created_at', { ascending: false });
+            contractsData = data || [];
+          }
+        }
+      }
+
+      // Multi-level fallback loading for vehicles
+      let vehiclesData = [];
+      try {
+        vehiclesData = await Vehicle.list('-updated_date');
+      } catch (vehicleError) {
+        console.warn('Primary vehicle loading failed, trying alternative ordering:', vehicleError);
+        try {
+          vehiclesData = await Vehicle.list('-created_at');
+        } catch (vehicleError2) {
+          console.warn('Alternative vehicle ordering failed, trying without ordering:', vehicleError2);
+          try {
+            vehiclesData = await Vehicle.list();
+          } catch (vehicleError3) {
+            console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
+            const { supabase } = await import('@/lib/supabase');
+            const { data } = await supabase.from('vehicle').select('*').order('created_at', { ascending: false });
+            vehiclesData = data || [];
+          }
+        }
+      }
       
-      console.log('Loaded contracts:', contractsData); // Debug log
+      console.log(`Loaded ${contractsData.length} contracts, ${vehiclesData.length} vehicles`);
       setContracts(contractsData);
       setVehicles(vehiclesData);
     } catch (error) {
       console.error('Error loading data:', error);
+      
+      // Enhanced error message with RLS policy information
+      let errorMessage = 'Error loading data. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'Permission denied: You don\'t have access to view contracts. Please contact your administrator.';
+      } else if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        errorMessage = 'Database table not found. Please ensure the vehicle_contract table exists in your database.';
+      }
+      
+      alert(errorMessage);
     }
     setIsLoading(false);
   };
@@ -132,6 +179,7 @@ export default function Contracts() {
             </DialogHeader>
             <ContractForm
               contract={editingContract}
+              vehicles={vehicles}
               onSubmit={handleSubmit}
               onCancel={() => {
                 setShowForm(false);

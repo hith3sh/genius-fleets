@@ -15,9 +15,49 @@ export const Core = {
     throw new Error('Integration not yet migrated to Supabase');
   },
   
-  UploadFile: async (...args) => {
-    console.warn('UploadFile integration needs to be implemented with Supabase Storage');
-    throw new Error('Integration not yet migrated to Supabase');
+  UploadFile: async ({ file, bucket = 'VehicleImages', folder = 'uploads' }) => {
+    try {
+      const { supabase } = await import('@/lib/supabase');
+  
+      // Generate unique filename
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2, 15);
+      const fileExtension = file.name.split('.').pop();
+      const fileName = `${folder}/${timestamp}_${randomString}.${fileExtension}`;
+
+      console.log(`Uploading file to Supabase Storage: ${fileName}`);
+
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Supabase storage upload error:', error);
+        throw new Error(`File upload failed: ${error.message}. Please ensure you have proper permissions and the storage bucket exists.`);
+      }
+
+      console.log('File uploaded successfully to storage:', data);
+
+      // Get public URL for the uploaded file
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(fileName);
+
+      return {
+        file_url: urlData.publicUrl,
+        file_name: fileName,
+        file_size: file.size,
+        file_type: file.type,
+        bucket: bucket
+      };
+    } catch (error) {
+      console.error('UploadFile error:', error);
+      throw error;
+    }
   },
   
   GenerateImage: async (...args) => {
@@ -30,6 +70,9 @@ export const Core = {
     throw new Error('Integration not yet migrated to Supabase');
   }
 };
+
+// File upload now uses Supabase Storage exclusively
+// No more base64 fallback - proper storage policies ensure reliable uploads
 
 export const InvokeLLM = Core.InvokeLLM;
 export const SendEmail = Core.SendEmail;

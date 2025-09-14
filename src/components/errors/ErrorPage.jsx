@@ -1,20 +1,34 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, Home, RefreshCw } from 'lucide-react';
 
-export default function ErrorPage({ 
-  title = "Something went wrong", 
+// Custom hook that safely attempts to use useNavigate
+function useSafeNavigate() {
+  try {
+    const { useNavigate } = require('react-router-dom');
+    return useNavigate();
+  } catch (error) {
+    return null;
+  }
+}
+
+export default function ErrorPage({
+  title = "Something went wrong",
   message = "We encountered an unexpected error. Please try again.",
   showHomeButton = true,
   showRefreshButton = true,
-  errorCode = null 
+  errorCode = null
 }) {
-  const navigate = useNavigate();
-  
+  const navigate = useSafeNavigate();
+
   const handleGoHome = () => {
-    navigate('/');
+    if (navigate) {
+      navigate('/');
+    } else {
+      // Fallback to direct navigation
+      window.location.href = '/';
+    }
   };
   
   const handleRefresh = () => {

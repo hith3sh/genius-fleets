@@ -61,6 +61,8 @@ import BookingDetails from "../components/booking/BookingDetails";
 import BookingCalendar from "../components/booking/BookingCalendar";
 import InvoiceForm from "../components/finance/InvoiceForm";
 import AgreementForm from "../components/booking/AgreementForm"; // New import
+import DataImporter from "../components/utils/DataImporter";
+import TableDebugger from "../components/debug/TableDebugger";
 import { createPageUrl } from '@/utils';
 
 const statusColors = {
@@ -102,23 +104,35 @@ export default function Bookings() {
     setIsLoading(true);
     try {
       const [bookingsData, vehiclesData, customersData, invoicesData] = await Promise.all([
-        Booking.list('-created_date'),
+        Booking.list(), // Remove ordering temporarily to fix the error
         Vehicle.list(),
         Customer.list(),
         Invoice.list()
       ]);
-      setBookings(bookingsData);
-      setVehicles(vehiclesData);
-      setCustomers(customersData);
-      setInvoices(invoicesData);
+
+      console.log("Loaded bookings data:", bookingsData);
+      console.log("Loaded vehicles data:", vehiclesData);
+      console.log("Loaded customers data:", customersData);
+
+      setBookings(bookingsData || []);
+      setVehicles(vehiclesData || []);
+      setCustomers(customersData || []);
+      setInvoices(invoicesData || []);
     } catch (error) {
       console.error("Error loading data:", error);
+      // Set empty arrays to prevent undefined errors
+      setBookings([]);
+      setVehicles([]);
+      setCustomers([]);
+      setInvoices([]);
     }
     setIsLoading(false);
   };
 
   const filterBookings = useCallback(() => {
     let filtered = bookings;
+
+    console.log("Filtering bookings - Initial count:", filtered.length);
 
     if (searchTerm) {
       filtered = filtered.filter(booking => {
@@ -156,6 +170,7 @@ export default function Bookings() {
       );
     }
 
+    console.log("Filtering bookings - Final count:", filtered.length);
     setFilteredBookings(filtered);
   }, [bookings, customers, vehicles, searchTerm, statusFilter, classFilter, dateFilter]);
 
@@ -471,6 +486,35 @@ export default function Bookings() {
                               </TableCell>
                             </TableRow>
                           ))
+                        ) : filteredBookings.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center py-12">
+                              <CalendarIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
+                              <p className="text-gray-500 mb-4">
+                                {searchTerm || statusFilter !== "all" || classFilter !== "all" || dateFilter.start || dateFilter.end
+                                  ? "Try adjusting your search or filters"
+                                  : "Get started by creating your first booking"}
+                              </p>
+                              <div className="text-sm text-gray-400 mb-4">
+                                Debug: Total bookings: {bookings.length}, Vehicles: {vehicles.length}, Customers: {customers.length}
+                              </div>
+                              {vehicles.length === 0 ? (
+                                <div className="flex flex-col items-center gap-4">
+                                  <p className="text-red-600 font-medium">No vehicles found in database</p>
+                                  <DataImporter onImportComplete={loadData} />
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => setShowForm(true)}
+                                  className="bg-gradient-to-r from-teal-500 to-violet-600 hover:from-teal-600 hover:to-violet-700"
+                                >
+                                  <Plus className="w-4 h-4 mr-2" />
+                                  Create First Booking
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
                         ) : (
                           filteredBookings.map((booking) => {
                             const customer = getCustomerInfo(booking.customer_id);
@@ -584,24 +628,6 @@ export default function Bookings() {
                       </TableBody>
                     </Table>
                   </div>
-                  {!isLoading && filteredBookings.length === 0 && (
-                    <div className="text-center py-12">
-                      <CalendarIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
-                      <p className="text-gray-500 mb-4">
-                        {searchTerm || statusFilter !== "all" || classFilter !== "all" || dateFilter.start || dateFilter.end
-                          ? "Try adjusting your search or filters"
-                          : "Get started by creating your first booking"}
-                      </p>
-                      <Button
-                        onClick={() => setShowForm(true)}
-                        className="bg-gradient-to-r from-teal-500 to-violet-600 hover:from-teal-600 hover:to-violet-700"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create First Booking
-                      </Button>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </TabsContent>

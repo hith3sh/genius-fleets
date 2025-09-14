@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { AIDocumentProcessing } from '@/api/entities';
-import { User } from '@/api/entities';
+import AIDocumentProcessing from '@/api/entities/aiDocumentProcessing';
+import User from '@/api/entities/user';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,10 +171,10 @@ export default function AIDocumentProcessingPage() {
   const [processingDocument, setProcessingDocument] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   
-  const [uploadFormData, setUploadFormData] = {
+  const [uploadFormData, setUploadFormData] = useState({
     document_type: 'Invoice',
     processing_notes: ''
-  };
+  });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [reviewData, setReviewData] = useState({});
 
@@ -195,11 +195,53 @@ export default function AIDocumentProcessingPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const documentsData = await AIDocumentProcessing.list('-upload_date');
-      setDocuments(documentsData);
+      console.log('🔄 Loading AI document processing queue...');
+
+      // Load documents with multi-level fallback
+      let documentsData = [];
+
+      try {
+        // Try with upload_date ordering first
+        documentsData = await AIDocumentProcessing.list('-upload_date');
+        console.log('✅ Documents loaded with upload_date ordering:', documentsData?.length || 0);
+      } catch (orderError) {
+        console.warn('⚠️ upload_date ordering failed, trying created_at:', orderError.message);
+        try {
+          // Try with created_at ordering instead
+          documentsData = await AIDocumentProcessing.list('-created_at');
+          console.log('✅ Documents loaded with created_at ordering:', documentsData?.length || 0);
+        } catch (createdAtError) {
+          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
+          try {
+            // Try without any ordering
+            documentsData = await AIDocumentProcessing.list();
+            console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
+          } catch (basicError) {
+            console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
+            // Direct Supabase query as fallback
+            const { supabase } = await import('@/lib/supabase');
+            const result = await supabase.from('ai_document_processing').select('*');
+            if (result.error) throw result.error;
+            documentsData = result.data || [];
+            console.log('✅ Documents loaded via direct query:', documentsData.length);
+          }
+        }
+      }
+
+      setDocuments(documentsData || []);
+      console.log('🏁 Final document count:', documentsData?.length || 0);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error loading AI processing queue. Please try again.');
+      console.error('❌ Error loading AI processing queue:', error);
+      setDocuments([]);
+
+      let errorMsg = 'Error loading AI processing queue. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to view AI document processing. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };

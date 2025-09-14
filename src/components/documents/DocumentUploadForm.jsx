@@ -6,12 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileText } from 'lucide-react';
 
-export default function DocumentUploadForm({ 
-  vehicles, 
-  onUpload, 
-  onCancel, 
-  isUploading, 
-  documentTypes 
+export default function DocumentUploadForm({
+  vehicles = [],
+  onUpload,
+  onCancel,
+  isUploading,
+  documentTypes = ['Insurance', 'Mulkia', 'Vehicle Pictures', 'Other']
 }) {
   const [formData, setFormData] = useState({
     vehicle_id: '',
@@ -74,18 +74,24 @@ export default function DocumentUploadForm({
             <SelectValue placeholder="Select a vehicle..." />
           </SelectTrigger>
           <SelectContent>
-            {vehicles.map(vehicle => (
-              <SelectItem key={vehicle.id} value={vehicle.id}>
-                <div>
-                  <div className="font-medium">
-                    {vehicle.make} {vehicle.model} ({vehicle.license_plate})
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {vehicle.year} • {vehicle.color}
-                  </div>
-                </div>
+            {vehicles.length === 0 ? (
+              <SelectItem value="loading" disabled>
+                Loading vehicles...
               </SelectItem>
-            ))}
+            ) : (
+              vehicles.map(vehicle => (
+                <SelectItem key={vehicle.id} value={vehicle.id}>
+                  <div>
+                    <div className="font-medium">
+                      {vehicle.make} {vehicle.model} ({vehicle.license_plate})
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {vehicle.year} • {vehicle.color}
+                    </div>
+                  </div>
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
@@ -190,9 +196,9 @@ export default function DocumentUploadForm({
         >
           Cancel
         </Button>
-        <Button 
-          type="submit" 
-          disabled={isUploading || !selectedFile}
+        <Button
+          type="submit"
+          disabled={isUploading || !selectedFile || vehicles.length === 0}
           className="bg-blue-600 hover:bg-blue-700"
         >
           {isUploading ? (

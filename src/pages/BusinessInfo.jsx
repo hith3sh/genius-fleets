@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User } from "@/api/entities";
 import { 
   Building2, 
   Phone, 
@@ -17,7 +18,9 @@ import {
   Users,
   Calendar,
   DollarSign,
-  Edit3
+  Edit3,
+  Shield,
+  AlertTriangle
 } from "lucide-react";
 
 export default function BusinessInfo() {
@@ -44,11 +47,42 @@ export default function BusinessInfo() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [accessLoading, setAccessLoading] = useState(true);
 
-  // Load business info on component mount
+  // Check user authorization on component mount
   useEffect(() => {
-    loadBusinessInfo();
+    checkUserAccess();
   }, []);
+
+  // Load business info after access is confirmed
+  useEffect(() => {
+    if (hasAccess) {
+      loadBusinessInfo();
+    }
+  }, [hasAccess]);
+
+  const checkUserAccess = async () => {
+    try {
+      setAccessLoading(true);
+      const currentUser = await User.me();
+      setUser(currentUser);
+      
+      // Check if user has access to BusinessInfo module
+      const hasBusinessInfoAccess = await User.hasAccess('BusinessInfo');
+      setHasAccess(hasBusinessInfoAccess);
+      
+      if (!hasBusinessInfoAccess) {
+        console.warn('User does not have access to BusinessInfo module');
+      }
+    } catch (error) {
+      console.error('Error checking user access:', error);
+      setHasAccess(false);
+    } finally {
+      setAccessLoading(false);
+    }
+  };
 
   const loadBusinessInfo = async () => {
     try {
@@ -117,6 +151,60 @@ export default function BusinessInfo() {
       reader.readAsDataURL(file);
     }
   };
+
+  // Show loading state while checking access
+  if (accessLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking access permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show access denied if user doesn't have permission
+  if (!hasAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
+        <div className="text-center max-w-md">
+          <div className="p-4 bg-red-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+            <Shield className="w-10 h-10 text-red-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-red-600 mb-4">Access Denied</h1>
+          <p className="text-gray-600 mb-6">
+            You don't have permission to access the Business Information page. 
+            This page is restricted to authorized personnel only.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-yellow-800">
+                <p className="font-medium">Required Access Level:</p>
+                <p>Management role or Staff with 'BusinessInfo' module access</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <Button
+              onClick={() => window.history.back()}
+              variant="outline"
+              className="border-gray-300"
+            >
+              Go Back
+            </Button>
+            <Button
+              onClick={() => window.location.href = '/Dashboard'}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-full">

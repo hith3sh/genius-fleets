@@ -1,4 +1,5 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase';
+import { handleSupabaseError } from '../utils/errorHandler.js';
 
 // Generic CRUD operations for Supabase
 class SupabaseEntity {
@@ -36,12 +37,11 @@ class SupabaseEntity {
         .insert(item)
         .select()
         .single()
-      
+
       if (error) throw error
       return data
     } catch (error) {
-      // Import error handler when needed
-      const { handleSupabaseError } = await import('../utils/errorHandler.js');
+      // Use statically imported error handler
       throw handleSupabaseError(error);
     }
   }

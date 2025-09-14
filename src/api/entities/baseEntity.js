@@ -33,10 +33,12 @@ class BaseEntity {
    * @returns {Promise<Array>} - Array of records
    */
   async list(orderBy = 'created_at', filters = {}, limit = 100, offset = 0) {
+    console.log(`🔍 BaseEntity.list() called for table: ${this.tableName}`);
+
     let query = supabase
       .from(this.tableName)
       .select('*');
-    
+
     // Apply filters if provided
     if (filters && typeof filters === 'object' && !Array.isArray(filters) && Object.keys(filters).length > 0) {
       Object.keys(filters).forEach(key => {
@@ -45,27 +47,46 @@ class BaseEntity {
         }
       });
     }
-    
-    // Apply ordering
+
+    // Apply ordering with error handling
     if (orderBy) {
-      const isDesc = orderBy.startsWith('-');
-      const field = isDesc ? orderBy.substring(1) : orderBy;
-      query = query.order(field, { ascending: !isDesc });
+      try {
+        const isDesc = orderBy.startsWith('-');
+        const field = isDesc ? orderBy.substring(1) : orderBy;
+        query = query.order(field, { ascending: !isDesc });
+      } catch (orderError) {
+        console.warn(`Warning: Could not apply ordering by ${orderBy}, continuing without ordering:`, orderError);
+        // Continue without ordering if the field doesn't exist
+      }
     }
-    
+
     // Apply pagination
     if (limit) {
       query = query.limit(limit);
     }
-    
+
     if (offset) {
       query = query.range(offset, offset + limit - 1);
     }
-    
+
     const { data, error } = await query;
-    
-    if (error) throw error;
-    return data;
+
+    console.log(`📊 Query result for ${this.tableName}:`, {
+      success: !error,
+      count: data ? data.length : 0,
+      error: error?.message
+    });
+
+    if (error) {
+      console.error(`❌ Database error for table ${this.tableName}:`, error);
+      // If error is due to ordering column, try again without ordering
+      if (error.message?.includes('column') && error.message?.includes('does not exist') && orderBy) {
+        console.warn(`Retrying query without ordering due to column error:`, error.message);
+        return this.list(null, filters, limit, offset);
+      }
+      throw error;
+    }
+    return data || [];
   }
 
   /**

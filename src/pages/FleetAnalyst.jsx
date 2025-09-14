@@ -65,14 +65,22 @@ export default function FleetAnalyst() {
   };
 
   const handleSendMessage = async () => {
+    console.log('Sending message:', newMessage);
+    console.log('Current conversation:', currentConversation);
+    console.log('Is sending:', isSending);
+    
     if (!newMessage.trim() || !currentConversation || isSending) return;
 
     setIsSending(true);
-    await agentSDK.addMessage(currentConversation, {
-      role: 'user',
-      content: newMessage,
-    });
-    setNewMessage('');
+    try {
+      await agentSDK.addMessage(currentConversation, {
+        role: 'user',
+        content: newMessage,
+      });
+      setNewMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
     setIsSending(false);
   };
 
@@ -167,10 +175,18 @@ export default function FleetAnalyst() {
         </div>
 
         <div className="p-4 bg-white border-t">
+          {/* Debug info */}
+          <div className="text-xs text-gray-500 mb-2">
+            Debug: isLoading={String(isLoading)}, isSending={String(isSending)}, isListening={String(isListening)}, 
+            hasConversation={String(!!currentConversation)}, messageLength={newMessage.length}
+          </div>
           <div className="flex items-center gap-2">
             <Textarea
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                console.log('Input changed:', e.target.value);
+                setNewMessage(e.target.value);
+              }}
               placeholder="Ask Genius, or press the mic to speak..."
               className="flex-1 resize-none"
               onKeyDown={(e) => {
@@ -179,6 +195,8 @@ export default function FleetAnalyst() {
                   handleSendMessage();
                 }
               }}
+              onFocus={() => console.log('Textarea focused')}
+              onBlur={() => console.log('Textarea blurred')}
               rows={2}
               disabled={isListening || isSending}
             />

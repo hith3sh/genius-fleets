@@ -14,6 +14,8 @@ import { CarImage } from '@/api/entities';
 import DocumentUploadForm from '../documents/DocumentUploadForm';
 
 export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSelector }) {
+  // Add state to store vehicles for the DocumentUploadForm
+  const [vehicles, setVehicles] = useState([]);
   const [formData, setFormData] = useState({
     license_plate: '',
     make: '',
@@ -74,22 +76,29 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
 
   // Document upload modal states
   const [showDocumentUpload, setShowDocumentUpload] = useState(false);
+  const [documentUploading, setDocumentUploading] = useState(false);
   // State to control visibility of success message after document extraction
   const [documentExtractedSuccess, setDocumentExtractedSuccess] = useState(false);
 
-  // Effect to fetch image set options
+  // Effect to fetch image set options and vehicles
   useEffect(() => {
-    async function fetchImageSets() {
+    async function fetchData() {
       try {
+        // Fetch image sets
         const images = await CarImage.list();
-        // Extract unique image_set_id values
         const uniqueSets = [...new Set(images.map(img => img.image_set_id).filter(id => id))];
         setImageSetOptions(uniqueSets);
+
+        // Fetch vehicles for DocumentUploadForm
+        const { Vehicle } = await import('@/api/entities');
+        const vehiclesList = await Vehicle.list();
+        setVehicles(vehiclesList || []);
       } catch (error) {
-        console.error("Failed to load image sets:", error);
+        console.error("Failed to load data:", error);
+        setVehicles([]); // Set empty array on error
       }
     }
-    fetchImageSets();
+    fetchData();
   }, []);
 
   // Effect to populate form data when vehicle is provided or reset for a new vehicle
@@ -157,6 +166,76 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
     }));
   };
 
+  // Handle document upload for Mulkia extraction
+  const handleDocumentUpload = async (vehicleId, documentType, file, documentName, expiryDate, notes) => {
+    setDocumentUploading(true);
+    try {
+      console.log('Processing Mulkia document upload...');
+
+      // For Mulkia extraction in VehicleForm, we don't actually save the document
+      // We just extract the data and populate the form
+      if (documentType === 'Mulkia') {
+        console.log('Uploading and extracting Mulkia data from file:', file.name);
+
+        // Step 1: Upload the file to storage
+        const { UploadFile } = await import('@/api/integrations');
+        const uploadResult = await UploadFile({ file });
+
+        if (!uploadResult.file_url) {
+          throw new Error('File upload failed - no URL returned');
+        }
+
+        console.log('File uploaded successfully:', uploadResult.file_url);
+
+        // Step 2: Extract data from the uploaded Mulkia document
+        const { extractMulkiaData } = await import('@/api/functions');
+        const extractionResult = await extractMulkiaData({ file_url: uploadResult.file_url });
+
+        console.log('Mulkia extraction result:', extractionResult);
+
+        // Step 3: If extraction was successful, populate the form
+        if (extractionResult.data?.success && extractionResult.data?.extracted_data) {
+          console.log('Mulkia data extracted successfully:', extractionResult.data.extracted_data);
+          handleDocumentExtracted(extractionResult.data.extracted_data);
+        } else {
+          console.warn('Mulkia extraction failed or returned no data');
+          // Still show success for upload, but inform user about extraction
+          alert('Document uploaded successfully, but data extraction failed. You can manually fill the form.');
+        }
+
+        // Close the upload dialog
+        setShowDocumentUpload(false);
+
+        // Show success message
+        setDocumentExtractedSuccess(true);
+
+      } else {
+        // For non-Mulkia documents, just upload
+        const { UploadFile } = await import('@/api/integrations');
+        const uploadResult = await UploadFile({ file });
+
+        console.log('Document uploaded:', uploadResult);
+        setShowDocumentUpload(false);
+        alert('Document uploaded successfully!');
+      }
+
+    } catch (error) {
+      console.error('Error processing document:', error);
+      let errorMsg = 'Error processing document. Please try again.';
+
+      if (error.message?.includes('File upload failed')) {
+        errorMsg = 'File upload failed. Please check your internet connection and file size.';
+      } else if (error.message?.includes('Bucket not found')) {
+        errorMsg = 'Storage configuration issue. Please contact your administrator.';
+      } else if (error.message) {
+        errorMsg = `Upload error: ${error.message}`;
+      }
+
+      alert(errorMsg);
+    }
+    setDocumentUploading(false);
+  };
+
   // Handle document extraction completion
   const handleDocumentExtracted = (data) => {
     console.log('Document data received in VehicleForm:', data);
@@ -204,29 +283,51 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
     e.preventDefault();
     setIsSaving(true);
 
-    // Create submission data with all fields properly formatted
-    const submissionData = {
-      ...formData,
-      // Ensure VIN field value is also stored in chassis_number field
-      chassis_number: formData.vin || formData.chassis_number,
-      // Convert numeric fields to proper types
-      year: parseInt(formData.year) || new Date().getFullYear(),
-      seating_capacity: parseInt(formData.seating_capacity) || 5,
-      number_of_doors: parseInt(formData.number_of_doors) || 4,
-      daily_rate: parseFloat(formData.daily_rate) || 0,
-      monthly_rate: parseFloat(formData.monthly_rate) || 0,
-      odometer_reading: parseFloat(formData.odometer_reading) || 0,
-      next_service_due_km: parseFloat(formData.next_service_due_km) || 0,
-      purchase_price: parseFloat(formData.purchase_price) || 0,
-      current_market_value: parseFloat(formData.current_market_value) || 0,
-      estimated_present_value: parseFloat(formData.estimated_present_value) || 0,
-      // Handle image data
-      vehicle_photos: formData.vehicle_photos, // Correctly use formData
-      image_set_id: formData.image_set_id // Correctly use formData
-    };
+    try {
+      // Create submission data with all fields properly formatted
+      const submissionData = {
+        ...formData,
+        // Ensure VIN field value is also stored in chassis_number field
+        chassis_number: formData.vin || formData.chassis_number,
+        // Convert numeric fields to proper types
+        year: parseInt(formData.year) || new Date().getFullYear(),
+        seating_capacity: parseInt(formData.seating_capacity) || 5,
+        number_of_doors: parseInt(formData.number_of_doors) || 4,
+        daily_rate: parseFloat(formData.daily_rate) || 0,
+        monthly_rate: parseFloat(formData.monthly_rate) || 0,
+        odometer_reading: parseFloat(formData.odometer_reading) || 0,
+        next_service_due_km: parseFloat(formData.next_service_due_km) || 0,
+        purchase_price: parseFloat(formData.purchase_price) || 0,
+        current_market_value: parseFloat(formData.current_market_value) || 0,
+        estimated_present_value: parseFloat(formData.estimated_present_value) || 0,
+        // Handle date fields - convert empty strings to null
+        purchase_date: formData.purchase_date?.trim() || null,
+        insurance_expiry_date: formData.insurance_expiry_date?.trim() || null,
+        registration_expiry_date: formData.registration_expiry_date?.trim() || null,
+        last_service_date: formData.last_service_date?.trim() || null,
+        next_service_due_date: formData.next_service_due_date?.trim() || null,
+        tyre_change_date: formData.tyre_change_date?.trim() || null,
+        battery_replacement_date: formData.battery_replacement_date?.trim() || null,
+        registration_date: formData.registration_date?.trim() || null,
+        // Handle image data
+        vehicle_photos: formData.vehicle_photos,
+        image_set_id: formData.image_set_id === 'none' ? null : formData.image_set_id
+      };
 
-    console.log('Submitting vehicle data with Mulkia data:', submissionData);
-    await onSave(submissionData); // Changed from onSubmit to onSave
+      // Remove any remaining empty string fields that should be null
+      Object.keys(submissionData).forEach(key => {
+        if (submissionData[key] === '') {
+          submissionData[key] = null;
+        }
+      });
+
+      console.log('Submitting vehicle data:', submissionData);
+      await onSave(submissionData);
+    } catch (error) {
+      console.error('Error saving vehicle:', error);
+      alert(`Error saving vehicle: ${error.message}`);
+    }
+
     setIsSaving(false);
   };
 
@@ -562,7 +663,7 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
               <SelectContent>
                 {imageSetOptions.map(id => <SelectItem key={id} value={id}>{id}</SelectItem>)}
                 {/* Option to clear selection if desired */}
-                <SelectItem value={null}>Clear Selection</SelectItem>
+                <SelectItem value="none">Clear Selection</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -602,8 +703,11 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
             <DialogTitle>Upload Mulkia Document</DialogTitle>
           </DialogHeader>
           <DocumentUploadForm
-            onDocumentExtracted={handleDocumentExtracted}
+            vehicles={vehicles}
+            onUpload={handleDocumentUpload}
             onCancel={() => setShowDocumentUpload(false)}
+            isUploading={documentUploading}
+            documentTypes={['Mulkia', 'Insurance', 'Vehicle Pictures', 'Other']}
           />
         </DialogContent>
       </Dialog>

@@ -41,23 +41,45 @@ export default function CorporateClients() {
     setIsLoading(true);
     try {
       console.log('🔄 Loading corporate clients data...'); // Debug log
-      
-      const [clientsData, usersData] = await Promise.all([
-        CorporateClient.list('-created_date'),
-        User.list()
-      ]);
-      
-      console.log('🏢 Loaded corporate clients:', clientsData?.length || 0, 'records'); // Debug log
+
+      // Try different approaches to load corporate clients
+      let clientsData = null;
+
+      try {
+        // First try with created_at ordering
+        clientsData = await CorporateClient.list('-created_at');
+        console.log('✅ Corporate clients loaded with created_at ordering:', clientsData?.length || 0, 'records');
+      } catch (orderError) {
+        console.log('⚠️ created_at ordering failed, trying without ordering:', orderError.message);
+        try {
+          // Try without any ordering
+          clientsData = await CorporateClient.list();
+          console.log('✅ Corporate clients loaded without ordering:', clientsData?.length || 0, 'records');
+        } catch (basicError) {
+          console.log('⚠️ Basic list failed, trying direct Supabase query:', basicError.message);
+          // Direct Supabase query as last resort
+          const { supabase } = await import('@/lib/supabase');
+          const result = await supabase.from('corporate_client').select('*');
+
+          if (result.error) throw result.error;
+          clientsData = result.data;
+          console.log('✅ Corporate clients loaded via direct query:', clientsData?.length || 0, 'records');
+        }
+      }
+
+      const usersData = await User.list();
+
+      console.log('🏢 Final corporate clients count:', clientsData?.length || 0); // Debug log
       console.log('👨‍💼 Loaded users:', usersData?.length || 0, 'records'); // Debug log
-      console.log('🔍 Clients data:', clientsData); // Debug log
-      
+      console.log('🔍 Clients data sample:', clientsData?.[0]); // Debug log
+
       setClients(clientsData || []);
-      
-      const managers = usersData?.filter(user => 
+
+      const managers = usersData?.filter(user =>
         user.role === 'Sales Executive' || user.role === 'Management'
       ) || [];
       setAccountManagers(managers);
-      
+
     } catch (error) {
       console.error('❌ Error loading corporate clients data:', error);
       setClients([]);
@@ -143,7 +165,7 @@ export default function CorporateClients() {
                 Add Corporate Client
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto w-[95vw]">
               <DialogHeader>
                 <DialogTitle>
                   {editingClient ? 'Edit Corporate Client' : 'Add Corporate Client'}
@@ -171,6 +193,9 @@ export default function CorporateClients() {
               <div>
                 <p className="text-sm text-gray-600">Total Clients</p>
                 <p className="text-2xl font-bold">{clients.length}</p>
+                {clients.length === 0 && !isLoading && (
+                  <p className="text-xs text-red-500">No clients visible</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -202,6 +227,33 @@ export default function CorporateClients() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Debug Info */}
+      {clients.length === 0 && !isLoading && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <h3 className="font-semibold text-yellow-800">Debug Information</h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              No corporate clients found in the list. If you just created one, it should appear here.
+            </p>
+            <p className="text-sm text-yellow-700">
+              Check the browser console for detailed loading information.
+            </p>
+            <Button
+              onClick={() => {
+                console.log('Current clients state:', clients);
+                console.log('Filtered clients:', filteredClients);
+                loadData();
+              }}
+              variant="outline"
+              size="sm"
+              className="mt-2"
+            >
+              Debug & Reload
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Search */}
       <Card>
@@ -284,7 +336,9 @@ export default function CorporateClients() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(client.created_date).toLocaleDateString()}
+                        {client.created_at ? new Date(client.created_at).toLocaleDateString() :
+                         client.created_date ? new Date(client.created_date).toLocaleDateString() :
+                         'N/A'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">

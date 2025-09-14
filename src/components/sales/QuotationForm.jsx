@@ -63,13 +63,48 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
       const loadCustomersData = async () => {
         try {
           console.log('📋 Fetching customers...'); // Debug log
-          const data = await Customer.list('-created_date');
-          console.log('✅ Customers loaded:', data?.length || 0, 'records'); // Debug log
-          console.log('👥 Customer data:', data); // Debug log
+
+          // Try different approaches to load customers
+          let data = null;
+
+          try {
+            // First try with created_at ordering
+            data = await Customer.list('-created_at');
+            console.log('✅ Customers loaded with created_at ordering:', data?.length || 0, 'records');
+          } catch (orderError) {
+            console.log('⚠️ created_at ordering failed, trying without ordering:', orderError.message);
+
+            try {
+              // Try without any ordering
+              data = await Customer.list();
+              console.log('✅ Customers loaded without ordering:', data?.length || 0, 'records');
+            } catch (basicError) {
+              console.log('⚠️ Basic list failed, trying direct Supabase query:', basicError.message);
+
+              // Direct Supabase query as last resort
+              const { supabase } = await import('@/lib/supabase');
+              const result = await supabase.from('customer').select('*');
+
+              if (result.error) throw result.error;
+              data = result.data;
+              console.log('✅ Customers loaded via direct query:', data?.length || 0, 'records');
+            }
+          }
+
+          console.log('👥 Customer data sample:', data?.[0]); // Debug log - show structure
           return data || [];
         } catch (error) {
           console.error('❌ Error loading customers:', error);
-          throw new Error(`Failed to load customers: ${error.message}`); // Throw to be caught by the main try-catch
+
+          // Enhanced error message for column issues
+          let errorMsg = `Failed to load customers: ${error.message}`;
+          if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+            errorMsg = `Database column error when loading customers. The customer table might have different column names than expected. Please check the database schema.`;
+          } else if (error.message?.includes('row-level security policy')) {
+            errorMsg = `Permission denied: You don't have access to view customers. Please ensure your user has the right role and permissions.`;
+          }
+
+          throw new Error(errorMsg); // Throw to be caught by the main try-catch
         }
       };
 
@@ -148,8 +183,29 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
   const loadCustomers = async () => {
     try {
       console.log('🔄 Reloading customers...'); // Debug log
-      const customersData = await Customer.list('-created_date');
-      console.log('✅ Customers reloaded:', customersData?.length || 0, 'records'); // Debug log
+
+      let customersData = null;
+
+      try {
+        // First try with ordering
+        customersData = await Customer.list('-created_at');
+        console.log('✅ Customers reloaded with ordering:', customersData?.length || 0, 'records');
+      } catch (orderError) {
+        try {
+          // Try without ordering
+          customersData = await Customer.list();
+          console.log('✅ Customers reloaded without ordering:', customersData?.length || 0, 'records');
+        } catch (basicError) {
+          // Direct query fallback
+          const { supabase } = await import('@/lib/supabase');
+          const result = await supabase.from('customer').select('*');
+
+          if (result.error) throw result.error;
+          customersData = result.data;
+          console.log('✅ Customers reloaded via direct query:', customersData?.length || 0, 'records');
+        }
+      }
+
       setCustomers(customersData || []);
     } catch (error) {
       console.error('❌ Error reloading customers:', error);
@@ -160,19 +216,35 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
     e.preventDefault();
     
     // Basic form validation
-    if (!formData.customer_id) {
+    if (!formData.customer_id || formData.customer_id.trim() === '') {
       alert('Please select a customer');
       return;
     }
-    
-    if (!formData.vehicle_details) {
+
+    if (!formData.vehicle_details || formData.vehicle_details.trim() === '') {
       alert('Please enter vehicle details');
       return;
     }
-    
-    if (!formData.total_amount) {
+
+    // Validate total amount is a number
+    if (!formData.total_amount || formData.total_amount.trim() === '') {
       alert('Please enter total amount');
       return;
+    }
+
+    const totalAmountNum = parseFloat(formData.total_amount);
+    if (isNaN(totalAmountNum) || totalAmountNum <= 0) {
+      alert('Please enter a valid total amount greater than 0');
+      return;
+    }
+
+    // Validate daily rate if provided
+    if (formData.daily_rate && formData.daily_rate.trim() !== '') {
+      const dailyRateNum = parseFloat(formData.daily_rate);
+      if (isNaN(dailyRateNum) || dailyRateNum <= 0) {
+        alert('Please enter a valid daily rate greater than 0');
+        return;
+      }
     }
     
     setIsLoading(true);
@@ -182,7 +254,7 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
       
       // Create a clean copy of formData
       const submitData = { ...formData };
-      
+
       // Remove empty optional fields before submission
       if (!submitData.sales_rep_id) {
         delete submitData.sales_rep_id;
@@ -190,20 +262,72 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
       if (!submitData.lead_id) {
         delete submitData.lead_id;
       }
-      
-      // Convert numeric fields to actual numbers
+
+      // Handle numeric fields properly - convert to numbers or remove if empty
       if (submitData.daily_rate) {
-        submitData.daily_rate = parseFloat(submitData.daily_rate);
+        const dailyRate = parseFloat(submitData.daily_rate);
+        if (isNaN(dailyRate)) {
+          delete submitData.daily_rate; // Remove if not a valid number
+        } else {
+          submitData.daily_rate = dailyRate;
+        }
+      } else {
+        delete submitData.daily_rate; // Remove if empty string
       }
+
       if (submitData.total_amount) {
-        submitData.total_amount = parseFloat(submitData.total_amount);
+        const totalAmount = parseFloat(submitData.total_amount);
+        if (isNaN(totalAmount)) {
+          alert('Please enter a valid total amount');
+          return;
+        } else {
+          submitData.total_amount = totalAmount;
+        }
+      } else {
+        delete submitData.total_amount; // Remove if empty string
       }
-      
+
+      // Handle optional date fields - remove if empty
+      if (!submitData.start_date || submitData.start_date.trim() === '') {
+        delete submitData.start_date;
+      }
+      if (!submitData.end_date || submitData.end_date.trim() === '') {
+        delete submitData.end_date;
+      }
+      if (!submitData.validity_date || submitData.validity_date.trim() === '') {
+        delete submitData.validity_date;
+      }
+
+      // Handle optional text fields - remove if empty
+      if (!submitData.vehicle_details || submitData.vehicle_details.trim() === '') {
+        alert('Please enter vehicle details');
+        return;
+      }
+      if (!submitData.terms_and_conditions || submitData.terms_and_conditions.trim() === '') {
+        delete submitData.terms_and_conditions;
+      }
+
+      console.log('📋 Final submit data:', submitData); // Debug log - shows cleaned data
+
       await onSubmit(submitData);
       
     } catch (error) {
       console.error('❌ Error submitting quotation:', error);
-      alert('Error creating quotation. Please try again.');
+
+      // Enhanced error handling with specific messages
+      let errorMsg = 'Error creating quotation. Please try again.';
+
+      if (error.message?.includes('invalid input syntax for type numeric')) {
+        errorMsg = 'Invalid number format detected. Please check that all numeric fields contain valid numbers.';
+      } else if (error.message?.includes('violates not-null constraint')) {
+        errorMsg = 'Missing required fields. Please ensure all required fields are filled.';
+      } else if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to create quotations. Please contact your administrator.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };

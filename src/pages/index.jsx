@@ -129,6 +129,7 @@ const MODULE_ACCESS = {
     HRLeaveRequests: 'hr',
     SettingsUserAccess: 'admin',
     UserAccessRules: 'admin',
+    BusinessInfo: 'admin',
     FinanceOverview: 'finance',
     Invoices: 'finance',
     Payments: 'finance',

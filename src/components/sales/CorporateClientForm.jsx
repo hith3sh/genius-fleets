@@ -38,22 +38,49 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Basic form validation
+    if (!formData.company_name || formData.company_name.trim() === '') {
+      alert('Please enter a company name');
+      return;
+    }
+
     setIsLoading(true);
-    
+
     try {
       // Filter out empty contacts
-      const filteredContacts = formData.contacts.filter(contact => 
+      const filteredContacts = formData.contacts.filter(contact =>
         contact.name.trim() || contact.email.trim() || contact.phone.trim()
       );
-      
+
+      // Create clean submit data
       const submitData = {
         ...formData,
-        contacts: filteredContacts
+        contacts: filteredContacts.length > 0 ? filteredContacts : null,
+        // Remove empty optional fields
+        account_manager_id: formData.account_manager_id || null,
+        billing_agreement: formData.billing_agreement.trim() || null,
+        notes: formData.notes.trim() || null
       };
-      
+
+      console.log('📋 Submitting corporate client data:', submitData); // Debug log
+
       await onSubmit(submitData);
     } catch (error) {
       console.error('Error submitting corporate client:', error);
+
+      // Enhanced error handling
+      let errorMsg = 'Error saving corporate client. Please try again.';
+
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to create/update corporate clients. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message?.includes('violates not-null constraint')) {
+        errorMsg = 'Missing required fields. Please ensure all required fields are filled.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };
@@ -77,24 +104,21 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
   };
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>{client ? 'Edit Corporate Client' : 'Add Corporate Client'}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-2">
               <Label htmlFor="company_name">Company Name *</Label>
               <Input
                 id="company_name"
                 value={formData.company_name}
                 onChange={(e) => setFormData({...formData, company_name: e.target.value})}
                 required
+                className="text-lg"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="account_manager_id">Account Manager *</Label>
+              <Label htmlFor="account_manager_id">Account Manager</Label>
               <Select 
                 value={formData.account_manager_id} 
                 onValueChange={(value) => setFormData({...formData, account_manager_id: value})}
@@ -148,7 +172,7 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
                     </Button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label>Name</Label>
                     <Input
@@ -207,7 +231,6 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
             </Button>
           </div>
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

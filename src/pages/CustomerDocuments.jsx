@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { CustomerDocument } from '@/api/entities';
-import { Customer } from '@/api/entities';
+import CustomerDocument from '@/api/entities/customerDocument';
+import Customer from '@/api/entities/customer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ export default function CustomerDocuments() {
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [uploadingFile, setUploadingFile] = useState(false);
@@ -36,15 +36,72 @@ export default function CustomerDocuments() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [documentsData, customersData] = await Promise.all([
-        CustomerDocument.list('-created_date'),
-        Customer.list()
-      ]);
-      setDocuments(documentsData);
-      setCustomers(customersData);
+      console.log('🔄 Loading customer documents and customers data...');
+
+      // Load documents and customers with fallback logic
+      let documentsData = [];
+      let customersData = [];
+
+      // Load documents with multi-level fallback
+      try {
+        // Try with created_date ordering first
+        documentsData = await CustomerDocument.list('-created_date');
+        console.log('✅ Documents loaded with created_date ordering:', documentsData?.length || 0);
+      } catch (orderError) {
+        console.warn('⚠️ created_date ordering failed, trying created_at:', orderError.message);
+        try {
+          // Try with created_at ordering instead
+          documentsData = await CustomerDocument.list('-created_at');
+          console.log('✅ Documents loaded with created_at ordering:', documentsData?.length || 0);
+        } catch (createdAtError) {
+          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
+          try {
+            // Try without any ordering
+            documentsData = await CustomerDocument.list();
+            console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
+          } catch (basicError) {
+            console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
+            // Direct Supabase query as fallback
+            const { supabase } = await import('@/lib/supabase');
+            const result = await supabase.from('customer_document').select('*');
+            if (result.error) throw result.error;
+            documentsData = result.data || [];
+            console.log('✅ Documents loaded via direct query:', documentsData.length);
+          }
+        }
+      }
+
+      // Load customers with fallback
+      try {
+        customersData = await Customer.list();
+        console.log('✅ Customers loaded:', customersData?.length || 0);
+      } catch (customerError) {
+        console.warn('⚠️ Customer list failed, trying direct query:', customerError.message);
+        // Direct Supabase query as fallback
+        const { supabase } = await import('@/lib/supabase');
+        const result = await supabase.from('customer').select('*');
+        if (result.error) throw result.error;
+        customersData = result.data || [];
+        console.log('✅ Customers loaded via direct query:', customersData.length);
+      }
+
+      setDocuments(documentsData || []);
+      setCustomers(customersData || []);
+
+      console.log('🏁 Final counts - Documents:', documentsData?.length || 0, 'Customers:', customersData?.length || 0);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error loading customer documents. Please try again.');
+      console.error('❌ Error loading customer documents data:', error);
+      setDocuments([]);
+      setCustomers([]);
+
+      let errorMsg = 'Error loading customer documents. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to view customer documents. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };
@@ -98,7 +155,21 @@ export default function CustomerDocuments() {
       
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert(`Error uploading document: ${error.message}`);
+      
+      // Enhanced error handling
+      let errorMsg = 'Error uploading document. Please try again.';
+      
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to upload customer documents. Please contact your administrator.';
+      } else if (error.message?.includes('File upload failed')) {
+        errorMsg = 'File upload failed. Please check your internet connection and file size.';
+      } else if (error.message?.includes('Bucket not found')) {
+        errorMsg = 'Storage configuration issue. Please contact your administrator.';
+      } else if (error.message) {
+        errorMsg = `Upload error: ${error.message}`;
+      }
+      
+      alert(errorMsg);
     }
     setUploadingFile(false);
   };
@@ -127,7 +198,16 @@ export default function CustomerDocuments() {
         alert('Document deleted successfully!');
       } catch (error) {
         console.error('Error deleting document:', error);
-        alert('Error deleting document. Please try again.');
+        
+        let errorMsg = 'Error deleting document. Please try again.';
+        
+        if (error.message?.includes('row-level security policy')) {
+          errorMsg = 'Permission denied: You don\'t have access to delete customer documents. Please contact your administrator.';
+        } else if (error.message) {
+          errorMsg = `Delete error: ${error.message}`;
+        }
+        
+        alert(errorMsg);
       }
     }
   };
@@ -155,7 +235,7 @@ export default function CustomerDocuments() {
                          doc.file_name?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === 'All' || doc.document_type === filterType;
-    const matchesCustomer = !selectedCustomer || doc.customer_id === selectedCustomer;
+    const matchesCustomer = selectedCustomer === 'all' || !selectedCustomer || doc.customer_id === selectedCustomer;
     
     return matchesSearch && matchesType && matchesCustomer;
   });
@@ -220,7 +300,7 @@ export default function CustomerDocuments() {
                 <SelectValue placeholder="All Customers" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>All Customers</SelectItem>
+                <SelectItem value="all">All Customers</SelectItem>
                 {customers.map(customer => (
                   <SelectItem key={customer.id} value={customer.id}>
                     {customer.name} ({customer.email})

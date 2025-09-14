@@ -96,10 +96,54 @@ export default function FleetManagement() {
   const loadVehicles = async () => {
     setIsLoading(true);
     try {
-      const data = await Vehicle.list('-updated_date');
-      setVehicles(data);
+      console.log('🔄 Loading fleet vehicles data...');
+
+      // Multi-level fallback loading strategy
+      let vehiclesData = [];
+
+      try {
+        // First try with updated_date ordering
+        vehiclesData = await Vehicle.list('-updated_date');
+        console.log('✅ Vehicles loaded with updated_date ordering:', vehiclesData?.length || 0);
+      } catch (orderError) {
+        console.warn('⚠️ updated_date ordering failed, trying created_at:', orderError.message);
+        try {
+          // Try with created_at ordering instead
+          vehiclesData = await Vehicle.list('-created_at');
+          console.log('✅ Vehicles loaded with created_at ordering:', vehiclesData?.length || 0);
+        } catch (createdAtError) {
+          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
+          try {
+            // Try without any ordering
+            vehiclesData = await Vehicle.list();
+            console.log('✅ Vehicles loaded without ordering:', vehiclesData?.length || 0);
+          } catch (basicError) {
+            console.warn('⚠️ Basic vehicle list failed, trying direct query:', basicError.message);
+            // Direct Supabase query as last resort
+            const { supabase } = await import('@/lib/supabase');
+            const result = await supabase.from('vehicle').select('*');
+            if (result.error) throw result.error;
+            vehiclesData = result.data || [];
+            console.log('✅ Vehicles loaded via direct query:', vehiclesData.length);
+          }
+        }
+      }
+
+      setVehicles(vehiclesData || []);
+      console.log('🏁 Final vehicle count:', vehiclesData?.length || 0);
+
     } catch (error) {
-      console.error("Error loading vehicles:", error);
+      console.error('❌ Error loading vehicles:', error);
+      setVehicles([]);
+
+      let errorMsg = 'Error loading vehicles. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to view vehicles. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StaffDocument } from '@/api/entities';
-import { Employee } from '@/api/entities';
+import StaffDocument from '@/api/entities/staffDocument';
+import Employee from '@/api/entities/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ export default function StaffDocuments() {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [uploadingFile, setUploadingFile] = useState(false);
@@ -37,15 +37,72 @@ export default function StaffDocuments() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [documentsData, employeesData] = await Promise.all([
-        StaffDocument.list('-upload_date'),
-        Employee.list()
-      ]);
-      setDocuments(documentsData);
-      setEmployees(employeesData);
+      console.log('🔄 Loading staff documents and employees data...');
+
+      // Load documents and employees with fallback logic
+      let documentsData = [];
+      let employeesData = [];
+
+      // Load documents with multi-level fallback
+      try {
+        // Try with upload_date ordering first
+        documentsData = await StaffDocument.list('-upload_date');
+        console.log('✅ Documents loaded with upload_date ordering:', documentsData?.length || 0);
+      } catch (orderError) {
+        console.warn('⚠️ upload_date ordering failed, trying created_at:', orderError.message);
+        try {
+          // Try with created_at ordering instead
+          documentsData = await StaffDocument.list('-created_at');
+          console.log('✅ Documents loaded with created_at ordering:', documentsData?.length || 0);
+        } catch (createdAtError) {
+          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
+          try {
+            // Try without any ordering
+            documentsData = await StaffDocument.list();
+            console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
+          } catch (basicError) {
+            console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
+            // Direct Supabase query as fallback
+            const { supabase } = await import('@/lib/supabase');
+            const result = await supabase.from('staff_document').select('*');
+            if (result.error) throw result.error;
+            documentsData = result.data || [];
+            console.log('✅ Documents loaded via direct query:', documentsData.length);
+          }
+        }
+      }
+
+      // Load employees with fallback
+      try {
+        employeesData = await Employee.list();
+        console.log('✅ Employees loaded:', employeesData?.length || 0);
+      } catch (employeeError) {
+        console.warn('⚠️ Employee list failed, trying direct query:', employeeError.message);
+        // Direct Supabase query as fallback
+        const { supabase } = await import('@/lib/supabase');
+        const result = await supabase.from('employee').select('*');
+        if (result.error) throw result.error;
+        employeesData = result.data || [];
+        console.log('✅ Employees loaded via direct query:', employeesData.length);
+      }
+
+      setDocuments(documentsData || []);
+      setEmployees(employeesData || []);
+
+      console.log('🏁 Final counts - Documents:', documentsData?.length || 0, 'Employees:', employeesData?.length || 0);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error loading staff documents. Please try again.');
+      console.error('❌ Error loading staff documents data:', error);
+      setDocuments([]);
+      setEmployees([]);
+
+      let errorMsg = 'Error loading staff documents. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to view staff documents. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };
@@ -172,7 +229,7 @@ export default function StaffDocuments() {
                          doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === 'All' || doc.document_type === filterType;
-    const matchesEmployee = !selectedEmployee || doc.employee_id === selectedEmployee;
+    const matchesEmployee = selectedEmployee === 'all' || !selectedEmployee || doc.employee_id === selectedEmployee;
     
     return matchesSearch && matchesType && matchesEmployee;
   });
@@ -242,7 +299,7 @@ export default function StaffDocuments() {
                 <SelectValue placeholder="All Employees" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>All Employees</SelectItem>
+                <SelectItem value="all">All Employees</SelectItem>
                 {employees.map(employee => (
                   <SelectItem key={employee.id} value={employee.id}>
                     {employee.name} ({employee.employee_id})

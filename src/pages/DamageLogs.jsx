@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { IncidentLog } from '@/api/entities';
-import { Vehicle } from '@/api/entities';
-import { User } from '@/api/entities';
+import IncidentLog from '@/api/entities/incidentLog';
+import Vehicle from '@/api/entities/vehicle';
+import User from '@/api/entities/user';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -38,17 +38,86 @@ export default function DamageLogs() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [incidentsData, vehiclesData, usersData] = await Promise.all([
-        IncidentLog.list('-incident_date'),
-        Vehicle.list(),
-        User.list()
-      ]);
+      // Multi-level fallback loading for incidents
+      let incidentsData = [];
+      try {
+        incidentsData = await IncidentLog.list('-incident_date');
+      } catch (incidentError) {
+        console.warn('Primary incident loading failed, trying alternative ordering:', incidentError);
+        try {
+          incidentsData = await IncidentLog.list('-created_at');
+        } catch (incidentError2) {
+          console.warn('Alternative incident ordering failed, trying without ordering:', incidentError2);
+          try {
+            incidentsData = await IncidentLog.list();
+          } catch (incidentError3) {
+            console.warn('Entity method failed, trying direct Supabase query:', incidentError3);
+            const { supabase } = await import('@/lib/supabase');
+            const { data } = await supabase.from('incident_log').select('*').order('created_at', { ascending: false });
+            incidentsData = data || [];
+          }
+        }
+      }
+
+      // Multi-level fallback loading for vehicles
+      let vehiclesData = [];
+      try {
+        vehiclesData = await Vehicle.list('-updated_date');
+      } catch (vehicleError) {
+        console.warn('Primary vehicle loading failed, trying alternative ordering:', vehicleError);
+        try {
+          vehiclesData = await Vehicle.list('-created_at');
+        } catch (vehicleError2) {
+          console.warn('Alternative vehicle ordering failed, trying without ordering:', vehicleError2);
+          try {
+            vehiclesData = await Vehicle.list();
+          } catch (vehicleError3) {
+            console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
+            const { supabase } = await import('@/lib/supabase');
+            const { data } = await supabase.from('vehicle').select('*').order('created_at', { ascending: false });
+            vehiclesData = data || [];
+          }
+        }
+      }
+
+      // Multi-level fallback loading for users
+      let usersData = [];
+      try {
+        usersData = await User.list('-updated_date');
+      } catch (userError) {
+        console.warn('Primary user loading failed, trying alternative ordering:', userError);
+        try {
+          usersData = await User.list('-created_at');
+        } catch (userError2) {
+          console.warn('Alternative user ordering failed, trying without ordering:', userError2);
+          try {
+            usersData = await User.list();
+          } catch (userError3) {
+            console.warn('Entity method failed, trying direct Supabase query:', userError3);
+            const { supabase } = await import('@/lib/supabase');
+            const { data } = await supabase.from('user_access').select('*').order('created_at', { ascending: false });
+            usersData = data || [];
+          }
+        }
+      }
+
       setIncidents(incidentsData);
       setVehicles(vehiclesData);
       setUsers(usersData);
+
+      console.log(`Loaded ${incidentsData.length} incidents, ${vehiclesData.length} vehicles, ${usersData.length} users`);
     } catch (error) {
       console.error('Error fetching data:', error);
-      alert('Error loading data. Please try again.');
+      
+      // Enhanced error message with RLS policy information
+      let errorMessage = 'Error loading data. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMessage = 'Permission denied: You don\'t have access to view incident logs. Please contact your administrator.';
+      } else if (error.message?.includes('relation') && error.message?.includes('does not exist')) {
+        errorMessage = 'Database table not found. Please ensure the incident_log table exists in your database.';
+      }
+      
+      alert(errorMessage);
     }
     setIsLoading(false);
   };

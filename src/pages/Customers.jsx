@@ -74,29 +74,46 @@ export default function Customers() {
     setShowForm(true);
   };
 
-  const handleSaveCustomer = async (savedCustomer) => {
+  const handleSaveCustomer = async (formData) => {
     try {
-      console.log('Customer saved successfully:', savedCustomer);
-      
+      let savedCustomer;
+
+      if (editingCustomer) {
+        // Update existing customer
+        savedCustomer = await Customer.update(editingCustomer.id, formData);
+        console.log('Customer updated successfully:', savedCustomer);
+      } else {
+        // Create new customer
+        savedCustomer = await Customer.create(formData);
+        console.log('Customer created successfully:', savedCustomer);
+      }
+
       // Only show success and refresh if we actually have a valid customer object
       if (savedCustomer && savedCustomer.id) {
         // Close the form
         setShowForm(false);
         setEditingCustomer(null);
-        
+
         // Force refresh the customer list
         console.log('Refreshing customer list...');
         await loadCustomers();
-        
+
         // Clear any previous error message
         setErrorMessage('');
       } else {
         throw new Error('Invalid customer data returned');
       }
-      
+
     } catch (error) {
       console.error('Error handling saved customer:', error);
-      setErrorMessage(`Error: ${error.message}`);
+
+      // Enhanced error message for RLS policy violations
+      let errorMsg = `Error: ${error.message}`;
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = `Permission denied: You don't have access to create/update customers. Please contact your administrator to:\n\n1. Ensure you have a user access record with role 'Management' or 'Staff'\n2. If Staff, ensure 'Customer Management' is in your accessible modules\n3. Run the RLS policies from rls_policies.sql if not already applied`;
+      }
+
+      setErrorMessage(errorMsg);
     }
   };
 

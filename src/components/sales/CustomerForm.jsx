@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhoneNumberInput from '../common/PhoneNumberInput';
 
-export default function CustomerForm({ customer, onSubmit, onCancel }) {
+export default function CustomerForm({ customer, onSave, onCancel }) {
   const [formData, setFormData] = useState({
     name: customer?.name || '',
     email: customer?.email || '',
@@ -25,11 +25,18 @@ export default function CustomerForm({ customer, onSubmit, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      await onSubmit(formData);
+      // Debug: Check current user and permissions
+      console.log('Attempting to save customer with data:', formData);
+      const { User } = await import('@/api/entities');
+      const currentUser = await User.me();
+      console.log('Current user info:', currentUser);
+
+      await onSave(formData);
     } catch (error) {
       console.error('Error submitting customer:', error);
+      alert(`Error: ${error.message}\n\nThis is likely a permissions issue. Please check that:\n1. You are logged in\n2. Your user has the right role (Management or Staff with Customer module access)\n3. The database RLS policies are correctly configured`);
     }
     setIsLoading(false);
   };

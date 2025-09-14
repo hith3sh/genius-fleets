@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { VehicleDocument } from '@/api/entities';
-import { Vehicle } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Plus, Upload, FileText, Download, Trash2, Car, Search, RefreshCw } from 'lucide-react';
+import VehicleDocument from '@/api/entities/vehicleDocument';
+import Vehicle from '@/api/entities/vehicle';
 import { UploadFile } from '@/api/integrations';
 import { extractMulkiaData } from '@/api/functions';
 import DocumentUploadForm from '../components/documents/DocumentUploadForm';
@@ -19,27 +19,99 @@ export default function VehicleDocuments() {
   const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadForm, setShowUploadForm] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [selectedVehicle, setSelectedVehicle] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All');
   const [uploadingFile, setUploadingFile] = useState(false);
 
   useEffect(() => {
+    console.log('VehicleDocuments component mounted');
+    console.log('VehicleDocument entity:', VehicleDocument);
+    console.log('Vehicle entity:', Vehicle);
+    console.log('UploadFile function:', UploadFile);
+    
+    // Debug user access
+    debugUserAccess();
     fetchData();
   }, []);
+
+  const debugUserAccess = async () => {
+    try {
+      const { User } = await import('@/api/entities');
+      const user = await User.me();
+      console.log('🔍 Current user data:', user);
+      console.log('🔍 User role:', user?.role);
+      console.log('🔍 User email:', user?.user_email);
+      console.log('🔍 Accessible modules:', user?.accessible_modules);
+      
+      // Check specific access
+      const hasVehicleDocsAccess = await User.hasAccess('Vehicle Documents');
+      console.log('🔍 Has Vehicle Documents access:', hasVehicleDocsAccess);
+      
+    } catch (error) {
+      console.error('❌ Error checking user access:', error);
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [documentsData, vehiclesData] = await Promise.all([
-        VehicleDocument.list('-upload_date'),
-        Vehicle.list()
-      ]);
-      setDocuments(documentsData);
-      setVehicles(vehiclesData);
+      console.log('🔄 Loading vehicle documents and vehicles data...');
+
+      // Load documents and vehicles with fallback logic similar to other pages
+      let documentsData = [];
+      let vehiclesData = [];
+
+      try {
+        // Try with ordering first
+        documentsData = await VehicleDocument.list('-upload_date');
+        console.log('✅ Documents loaded with ordering:', documentsData?.length || 0);
+      } catch (orderError) {
+        console.warn('⚠️ Documents ordering failed, trying without ordering:', orderError.message);
+        try {
+          documentsData = await VehicleDocument.list();
+          console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
+        } catch (basicError) {
+          console.warn('⚠️ Basic documents list failed, trying direct query:', basicError.message);
+          // Direct Supabase query as fallback
+          const { supabase } = await import('@/lib/supabase');
+          const result = await supabase.from('vehicle_document').select('*');
+          if (result.error) throw result.error;
+          documentsData = result.data || [];
+          console.log('✅ Documents loaded via direct query:', documentsData.length);
+        }
+      }
+
+      try {
+        vehiclesData = await Vehicle.list();
+        console.log('✅ Vehicles loaded:', vehiclesData?.length || 0);
+      } catch (vehicleError) {
+        console.warn('⚠️ Vehicle list failed, trying direct query:', vehicleError.message);
+        // Direct Supabase query as fallback
+        const { supabase } = await import('@/lib/supabase');
+        const result = await supabase.from('vehicle').select('*');
+        if (result.error) throw result.error;
+        vehiclesData = result.data || [];
+        console.log('✅ Vehicles loaded via direct query:', vehiclesData.length);
+      }
+
+      setDocuments(documentsData || []);
+      setVehicles(vehiclesData || []);
+
+      console.log('🏁 Final counts - Documents:', documentsData?.length || 0, 'Vehicles:', vehiclesData?.length || 0);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      alert('Error loading vehicle documents. Please try again.');
+      console.error('❌ Error loading vehicle documents data:', error);
+      setDocuments([]);
+      setVehicles([]);
+
+      let errorMsg = 'Error loading vehicle documents. Please try again.';
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to view vehicle documents. Please contact your administrator to ensure you have the right role and permissions.';
+      } else if (error.message) {
+        errorMsg = `Error: ${error.message}`;
+      }
+
+      alert(errorMsg);
     }
     setIsLoading(false);
   };
@@ -111,7 +183,21 @@ export default function VehicleDocuments() {
       
     } catch (error) {
       console.error('Error uploading document:', error);
-      alert(`Error uploading document: ${error.message}`);
+      
+      // Enhanced error handling
+      let errorMsg = 'Error uploading document. Please try again.';
+      
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to upload vehicle documents. Please contact your administrator.';
+      } else if (error.message?.includes('File upload failed')) {
+        errorMsg = 'File upload failed. Please check your internet connection and file size.';
+      } else if (error.message?.includes('Bucket not found')) {
+        errorMsg = 'Storage configuration issue. Please contact your administrator.';
+      } else if (error.message) {
+        errorMsg = `Upload error: ${error.message}`;
+      }
+      
+      alert(errorMsg);
     }
     setUploadingFile(false);
   };
@@ -124,7 +210,16 @@ export default function VehicleDocuments() {
         alert('Document deleted successfully!');
       } catch (error) {
         console.error('Error deleting document:', error);
-        alert('Error deleting document. Please try again.');
+        
+        let errorMsg = 'Error deleting document. Please try again.';
+        
+        if (error.message?.includes('row-level security policy')) {
+          errorMsg = 'Permission denied: You don\'t have access to delete vehicle documents. Please contact your administrator.';
+        } else if (error.message) {
+          errorMsg = `Delete error: ${error.message}`;
+        }
+        
+        alert(errorMsg);
       }
     }
   };
@@ -153,7 +248,7 @@ export default function VehicleDocuments() {
                          doc.notes?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === 'All' || doc.document_type === filterType;
-    const matchesVehicle = !selectedVehicle || doc.vehicle_id === selectedVehicle;
+    const matchesVehicle = !selectedVehicle || selectedVehicle === 'all' || doc.vehicle_id === selectedVehicle;
     
     return matchesSearch && matchesType && matchesVehicle;
   });
@@ -212,7 +307,7 @@ export default function VehicleDocuments() {
                 <SelectValue placeholder="All Vehicles" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={null}>All Vehicles</SelectItem>
+                <SelectItem value="all">All Vehicles</SelectItem>
                 {vehicles.map(vehicle => (
                   <SelectItem key={vehicle.id} value={vehicle.id}>
                     {vehicle.make} {vehicle.model} ({vehicle.license_plate})
@@ -355,6 +450,9 @@ export default function VehicleDocuments() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Upload Vehicle Document</DialogTitle>
+            <DialogDescription>
+              Upload insurance, Mulkia, or other important vehicle documents. The system will process the document and extract relevant information automatically.
+            </DialogDescription>
           </DialogHeader>
           <DocumentUploadForm
             vehicles={vehicles}

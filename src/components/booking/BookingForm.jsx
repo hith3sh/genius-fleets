@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Customer } from "@/api/entities";
 import { SendEmail } from "@/api/integrations";
 
-const vehicleClasses = ["Economy", "Compact", "Mid-size", "Premium", "Luxury", "SUV", "Van"];
+const vehicleClasses = ["Economy", "Hatch Back", "Mid-Size Sedan", "Luxury", "SUV", "Sports cars"];
 const statusOptions = ["Pending", "Confirmed", "Active", "Completed", "Cancelled"];
 
 export default function BookingForm({ booking, vehicles, customers, onSubmit, onCancel }) {
@@ -137,20 +137,18 @@ export default function BookingForm({ booking, vehicles, customers, onSubmit, on
     setIsLoadingVehicles(true);
     try {
       // Get vehicles of selected class
-      const classVehicles = vehicles.filter(v => 
+      const classVehicles = vehicles.filter(v =>
         v.vehicle_class === selectedClass && v.status === 'Available'
       );
 
-      // Filter out booked vehicles for the selected date range
-      // This would ideally be done with a proper database query
-      const available = classVehicles.filter(vehicle => {
-        // Simple availability check - in production, this should check existing bookings
-        return true; // For now, show all vehicles of the class
-      });
+      console.log("Vehicles of selected class:", classVehicles);
 
-      setAvailableVehicles(available);
+      // For now, show all available vehicles of the selected class
+      // TODO: Implement proper booking conflict checking with database
+      setAvailableVehicles(classVehicles);
     } catch (error) {
       console.error("Error checking availability:", error);
+      setAvailableVehicles([]);
     }
     setIsLoadingVehicles(false);
   };
@@ -457,6 +455,9 @@ Genius Fleets Team
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
                     No vehicles available for the selected class and dates. Please try different dates or vehicle class.
+                    <div className="text-xs mt-2 text-gray-500">
+                      Debug: Total vehicles: {vehicles.length}, Selected class: "{selectedClass}", Available vehicles: {availableVehicles.length}
+                    </div>
                   </AlertDescription>
                 </Alert>
               )}

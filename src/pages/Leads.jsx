@@ -59,11 +59,29 @@ export default function Leads() {
   const loadLeads = async () => {
     setIsLoading(true);
     try {
-      const data = await Lead.list('-created_date');
+      // Try to load leads with proper ordering
+      const data = await Lead.list('-created_at'); // Changed from created_date to created_at
       console.log('Loaded leads:', data); // Debug log
-      setLeads(data);
+      console.log('Leads count:', data?.length || 0);
+      setLeads(data || []);
     } catch (error) {
       console.error('Error loading leads:', error);
+
+      // Enhanced error handling - try alternative approaches
+      if (error.message?.includes('column') || error.message?.includes('created_at')) {
+        console.log('Trying alternative date column...');
+        try {
+          // Try without ordering first
+          const data = await Lead.list();
+          console.log('Loaded leads without ordering:', data);
+          setLeads(data || []);
+        } catch (fallbackError) {
+          console.error('Fallback load failed:', fallbackError);
+          setLeads([]);
+        }
+      } else {
+        setLeads([]);
+      }
     }
     setIsLoading(false);
   };
@@ -83,6 +101,11 @@ export default function Leads() {
   const handleSubmit = async (leadData) => {
     try {
       console.log('Submitting lead data:', leadData); // Debug log
+
+      // Debug: Check current user and permissions
+      const currentUser = await User.me();
+      console.log('Current user info:', currentUser);
+
       if (editingLead) {
         await Lead.update(editingLead.id, leadData);
       } else {
@@ -94,7 +117,14 @@ export default function Leads() {
       await loadLeads(); // Reload data immediately
     } catch (error) {
       console.error('Error saving lead:', error);
-      alert('Error saving lead. Please try again.');
+
+      // Enhanced error message for RLS policy violations
+      let errorMsg = `Error saving lead. Please try again.\n\nDetails: ${error.message}`;
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = `Permission denied: You don't have access to create/update leads. Please contact your administrator to:\n\n1. Ensure you have a user access record with role 'Management' or 'Staff'\n2. If Staff, ensure 'Leads' is in your accessible modules\n3. Run the updated RLS policies from rls_policies.sql`;
+      }
+
+      alert(errorMsg);
     }
   };
 
@@ -127,17 +157,25 @@ export default function Leads() {
           <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
           <p className="text-gray-600 mt-1">Track and manage potential customers</p>
         </div>
-        <Dialog open={showForm} onOpenChange={setShowForm}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Lead
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingLead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
-            </DialogHeader>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={loadLeads}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Loading...' : 'Refresh'}
+          </Button>
+          <Dialog open={showForm} onOpenChange={setShowForm}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{editingLead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
+              </DialogHeader>
             <LeadForm
               lead={editingLead}
               onSubmit={handleSubmit}
@@ -147,7 +185,8 @@ export default function Leads() {
               }}
             />
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -291,7 +330,9 @@ export default function Leads() {
                       </TableCell>
                       <TableCell>{getSalesRepName(lead.assigned_to_id)}</TableCell>
                       <TableCell>
-                        {new Date(lead.created_date).toLocaleDateString()}
+                        {lead.created_at ? new Date(lead.created_at).toLocaleDateString() :
+                         lead.created_date ? new Date(lead.created_date).toLocaleDateString() :
+                         'N/A'}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">

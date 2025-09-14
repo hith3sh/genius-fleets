@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { CarImage } from '@/api/entities';
+import CarImage from '@/api/entities/carImage';
+// Also try importing from the index
+import { CarImage as CarImageFromIndex } from '@/api/entities';
 import { UploadFile } from '@/api/integrations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +25,13 @@ export default function VehicleImageLibrary() {
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
+    console.log('VehicleImageLibrary mounted, CarImage object:', CarImage);
+    console.log('CarImageFromIndex object:', CarImageFromIndex);
+    console.log('CarImage methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(CarImage)));
+    console.log('CarImageFromIndex methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(CarImageFromIndex)));
+    console.log('CarImage.bulkCreate exists:', typeof CarImage.bulkCreate);
+    console.log('CarImageFromIndex.bulkCreate exists:', typeof CarImageFromIndex.bulkCreate);
+    console.log('CarImage.list exists:', typeof CarImage.list);
     loadImages();
   }, []);
 
@@ -47,10 +56,28 @@ export default function VehicleImageLibrary() {
   const loadImages = async () => {
     setIsLoading(true);
     try {
-      const data = await CarImage.list('-created_date');
-      setCarImages(data);
+      // Try with created_at first, fallback to no ordering if that fails
+      let data;
+      try {
+        data = await CarImage.list('created_at', false); // false = descending order
+      } catch (orderError) {
+        console.log('created_at ordering failed, trying without ordering:', orderError.message);
+        try {
+          data = await CarImage.list();
+        } catch (basicError) {
+          console.log('Basic list failed, trying direct query:', basicError.message);
+          // Direct Supabase query as last resort
+          const { supabase } = await import('@/lib/supabase');
+          const result = await supabase.from('car_image').select('*');
+          
+          if (result.error) throw result.error;
+          data = result.data;
+        }
+      }
+      setCarImages(data || []);
     } catch (error) {
       console.error("Error loading car images:", error);
+      setCarImages([]);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +126,23 @@ export default function VehicleImageLibrary() {
         image_url: file.file_url,
       }));
 
-      await CarImage.bulkCreate(newImageRecords);
+      console.log('About to call CarImage.bulkCreate with:', newImageRecords);
+      console.log('CarImage object:', CarImage);
+      console.log('CarImage.bulkCreate method:', CarImage.bulkCreate);
+      console.log('CarImage.bulkCreate type:', typeof CarImage.bulkCreate);
+      
+      // Test if bulkCreate exists
+      if (typeof CarImage.bulkCreate !== 'function') {
+        console.log('CarImage.bulkCreate not found, trying CarImageFromIndex...');
+        if (typeof CarImageFromIndex.bulkCreate === 'function') {
+          console.log('Using CarImageFromIndex.bulkCreate');
+          await CarImageFromIndex.bulkCreate(newImageRecords);
+        } else {
+          throw new Error('CarImage.bulkCreate is not a function. Available methods: ' + Object.getOwnPropertyNames(Object.getPrototypeOf(CarImage)));
+        }
+      } else {
+        await CarImage.bulkCreate(newImageRecords);
+      }
 
       alert('Images uploaded successfully!');
       setNewImageData({ image_set_id: '', model_tag: '', color_tag: '', notes: '' });
@@ -108,7 +151,25 @@ export default function VehicleImageLibrary() {
       loadImages();
     } catch (error) {
       console.error("Error uploading images:", error);
-      alert('An error occurred during upload. Please try again.');
+      
+      // Enhanced error handling
+      let errorMsg = 'An error occurred during upload. Please try again.';
+      
+      if (error.message?.includes('row-level security policy')) {
+        errorMsg = 'Permission denied: You don\'t have access to upload vehicle images. Please contact your administrator.';
+      } else if (error.message?.includes('Bucket not found')) {
+        errorMsg = 'Storage bucket not found. The system is using a temporary storage method. Images will be stored locally.';
+      } else if (error.message?.includes('File upload failed')) {
+        errorMsg = 'File upload failed. The system is using a temporary storage method. Images will be stored locally.';
+      } else if (error.message?.includes('duplicate key value')) {
+        errorMsg = 'An image with this set ID already exists. Please use a unique Image Set ID.';
+      } else if (error.message?.includes('base64-fallback')) {
+        errorMsg = 'Images uploaded successfully using temporary storage. They will be visible but may not persist across sessions.';
+      } else if (error.message) {
+        errorMsg = `Upload error: ${error.message}`;
+      }
+      
+      alert(errorMsg);
     } finally {
       setIsUploading(false);
     }
