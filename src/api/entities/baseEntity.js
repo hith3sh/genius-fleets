@@ -25,51 +25,19 @@ class BaseEntity {
   }
 
   /**
-   * List records with optional sorting
-   * @param {string} orderBy - Field to order by (prefix with - for descending)
-   * @param {object} filters - Optional filters object
-   * @param {number} limit - Optional limit
-   * @param {number} offset - Optional offset for pagination
+   * List records - fetch all data for client-side sorting/filtering
+   * @param {object} filters - Optional filters object (applied client-side)
+   * @param {number} limit - Optional limit (applied client-side)
+   * @param {number} offset - Optional offset for pagination (applied client-side)
    * @returns {Promise<Array>} - Array of records
    */
-  async list(orderBy = 'created_at', filters = {}, limit = 100, offset = 0) {
+  async list(filters = {}, limit = null, offset = 0) {
     console.log(`🔍 BaseEntity.list() called for table: ${this.tableName}`);
 
-    let query = supabase
+    // Simple query - just get all data, no ordering at database level
+    const { data, error } = await supabase
       .from(this.tableName)
       .select('*');
-
-    // Apply filters if provided
-    if (filters && typeof filters === 'object' && !Array.isArray(filters) && Object.keys(filters).length > 0) {
-      Object.keys(filters).forEach(key => {
-        if (filters[key] !== undefined && filters[key] !== null) {
-          query = query.eq(key, filters[key]);
-        }
-      });
-    }
-
-    // Apply ordering with error handling
-    if (orderBy) {
-      try {
-        const isDesc = orderBy.startsWith('-');
-        const field = isDesc ? orderBy.substring(1) : orderBy;
-        query = query.order(field, { ascending: !isDesc });
-      } catch (orderError) {
-        console.warn(`Warning: Could not apply ordering by ${orderBy}, continuing without ordering:`, orderError);
-        // Continue without ordering if the field doesn't exist
-      }
-    }
-
-    // Apply pagination
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    if (offset) {
-      query = query.range(offset, offset + limit - 1);
-    }
-
-    const { data, error } = await query;
 
     console.log(`📊 Query result for ${this.tableName}:`, {
       success: !error,
@@ -79,14 +47,29 @@ class BaseEntity {
 
     if (error) {
       console.error(`❌ Database error for table ${this.tableName}:`, error);
-      // If error is due to ordering column, try again without ordering
-      if (error.message?.includes('column') && error.message?.includes('does not exist') && orderBy) {
-        console.warn(`Retrying query without ordering due to column error:`, error.message);
-        return this.list(null, filters, limit, offset);
-      }
       throw error;
     }
-    return data || [];
+
+    let result = data || [];
+
+    // Apply client-side filtering
+    if (filters && typeof filters === 'object' && !Array.isArray(filters) && Object.keys(filters).length > 0) {
+      result = result.filter(record => {
+        return Object.keys(filters).every(key => {
+          if (filters[key] === undefined || filters[key] === null) return true;
+          return record[key] === filters[key];
+        });
+      });
+    }
+
+    // Apply client-side pagination
+    if (limit) {
+      result = result.slice(offset, offset + limit);
+    } else if (offset > 0) {
+      result = result.slice(offset);
+    }
+
+    return result;
   }
 
   /**
