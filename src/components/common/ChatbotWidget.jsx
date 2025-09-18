@@ -5,9 +5,9 @@ import { Send, Mic, X, Bot, BrainCircuit } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { InvokeLLM } from '@/api/integrations';
-import { User } from '@/api/entities';
 import { agentSDK } from '@/agents';
 import MessageBubble from '../agents/MessageBubble'; // Using the advanced message bubble
+import { useAuth } from '@/contexts/AuthContext';
 
 const faqData = `
 <section id="al-jisr-faq" aria-labelledby="aj-faq-title">
@@ -113,6 +113,7 @@ const faqData = `
 `;
 
 export default function ChatbotWidget() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false); // Changed from isTyping
@@ -120,9 +121,8 @@ export default function ChatbotWidget() {
   const [isListening, setIsListening] = useState(false);
   const [isLastInputVoice, setIsLastInputVoice] = useState(false);
   const recognitionRef = useRef(null);
-  
+
   // New state for agent integration
-  const [user, setUser] = useState(null);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]); // Initialized as empty, content set in useEffect
 
@@ -170,10 +170,6 @@ export default function ChatbotWidget() {
   const iconUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/b357bafe5_IAMONLINEstatic.jpg";
   const logoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png";
 
-  useEffect(() => {
-    // Check user authentication status when the component mounts
-    User.me().then(setUser).catch(() => setUser(null));
-  }, []);
 
   useEffect(() => {
     // Reset and set initial message when widget opens or user/language changes

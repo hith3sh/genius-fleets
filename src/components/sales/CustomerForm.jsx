@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhoneNumberInput from '../common/PhoneNumberInput';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CustomerForm({ customer, onSave, onCancel }) {
+  const { user: currentUser } = useAuth();
   const [formData, setFormData] = useState({
     name: customer?.name || '',
     email: customer?.email || '',
@@ -19,7 +21,7 @@ export default function CustomerForm({ customer, onSave, onCancel }) {
     tags: customer?.tags || [],
     residency_status: customer?.residency_status || 'Resident'
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -29,8 +31,6 @@ export default function CustomerForm({ customer, onSave, onCancel }) {
     try {
       // Debug: Check current user and permissions
       console.log('Attempting to save customer with data:', formData);
-      const { User } = await import('@/api/entities');
-      const currentUser = await User.me();
       console.log('Current user info:', currentUser);
 
       await onSave(formData);

@@ -13,8 +13,10 @@ import { UploadFile } from '@/api/integrations';
 import { extractMulkiaData } from '@/api/functions';
 import DocumentUploadForm from '../components/documents/DocumentUploadForm';
 import MulkiaExtractedData from '../components/documents/MulkiaExtractedData';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function VehicleDocuments() {
+  const { user: currentUser, hasAccess } = useAuth();
   const [documents, setDocuments] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,17 +39,15 @@ export default function VehicleDocuments() {
 
   const debugUserAccess = async () => {
     try {
-      const { User } = await import('@/api/entities');
-      const user = await User.me();
-      console.log('🔍 Current user data:', user);
-      console.log('🔍 User role:', user?.role);
-      console.log('🔍 User email:', user?.user_email);
-      console.log('🔍 Accessible modules:', user?.accessible_modules);
-      
+      console.log('🔍 Current user data:', currentUser);
+      console.log('🔍 User role:', currentUser?.role);
+      console.log('🔍 User email:', currentUser?.user_email);
+      console.log('🔍 Accessible modules:', currentUser?.accessible_modules);
+
       // Check specific access
-      const hasVehicleDocsAccess = await User.hasAccess('Vehicle Documents');
+      const hasVehicleDocsAccess = hasAccess('Vehicle Documents');
       console.log('🔍 Has Vehicle Documents access:', hasVehicleDocsAccess);
-      
+
     } catch (error) {
       console.error('❌ Error checking user access:', error);
     }

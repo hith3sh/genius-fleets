@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Plus, BarChart2, List, RefreshCw } from 'lucide-react';
 import { LeaveRequest } from '@/api/entities';
 import { Employee } from '@/api/entities';
-import { User } from '@/api/entities';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 
 import LeaveRequestForm from '../components/hr/LeaveRequestForm';
@@ -13,9 +13,9 @@ import LeaveRequestList from '../components/hr/LeaveRequestList';
 import LeaveBalanceCard from '../components/hr/LeaveBalanceCard';
 
 export default function HRLeaveRequests() {
+  const { user: currentUser } = useAuth();
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRequest, setEditingRequest] = useState(null);
@@ -27,14 +27,12 @@ export default function HRLeaveRequests() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [requests, emps, user] = await Promise.all([
+      const [requests, emps] = await Promise.all([
         LeaveRequest.list(),
-        Employee.list(),
-        User.me()
+        Employee.list()
       ]);
       setLeaveRequests(requests);
       setEmployees(emps);
-      setCurrentUser(user);
     } catch (error) {
       console.error("Failed to fetch data:", error);
       alert('Error loading leave requests. Please try again.');

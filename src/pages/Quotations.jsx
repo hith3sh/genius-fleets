@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Quotation } from '@/api/entities';
 import { Customer } from '@/api/entities';
-import { User } from '@/api/entities';
 import { UserAccess } from '@/api/entities';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +22,7 @@ const statusColors = {
 };
 
 export default function Quotations() {
+  const { user: currentUser } = useAuth();
   const [quotations, setQuotations] = useState([]);
   const [filteredQuotations, setFilteredQuotations] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -76,11 +77,9 @@ export default function Quotations() {
     
     try {
       console.log('🔄 Loading quotations data...');
-      
-      // Check user authentication first
-      const currentUser = await User.me();
+
       console.log('👤 Current user:', currentUser ? currentUser.email : 'Not logged in', 'Role:', currentUser ? currentUser.role : 'N/A');
-      
+
       if (!currentUser) {
         throw new Error('User not authenticated');
       }

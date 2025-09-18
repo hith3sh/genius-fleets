@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Customer } from '@/api/entities';
-import { User } from '@/api/entities'; // Added import for User entity
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,18 +11,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import CustomerForm from '../components/sales/CustomerForm';
 
 export default function Customers() {
+  const { user: currentUser } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [userRole, setUserRole] = useState(null); // Added userRole state
   const [errorMessage, setErrorMessage] = useState(''); // Added error message state
 
   useEffect(() => {
     loadCustomers();
-    checkUserRole(); // Call checkUserRole on mount
   }, []);
 
   useEffect(() => {
@@ -35,14 +34,6 @@ export default function Customers() {
     setFilteredCustomers(filtered);
   }, [customers, searchTerm]);
 
-  const checkUserRole = async () => {
-    try {
-      const user = await User.me();
-      setUserRole(user.role);
-    } catch (error) {
-      console.error('Error getting user role:', error);
-    }
-  };
 
   const loadCustomers = async () => {
     setIsLoading(true);
@@ -167,8 +158,8 @@ export default function Customers() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
           <p className="text-gray-600 mt-1">
-            Manage your customer database and relationships 
-            {userRole && <span className="text-sm">| Role: {userRole}</span>} {/* Added user role display */}
+            Manage your customer database and relationships
+            {currentUser && <span className="text-sm">| Role: {currentUser.role}</span>} {/* Added user role display */}
           </p>
         </div>
         <div className="flex gap-2"> {/* Grouped buttons */}
@@ -241,7 +232,7 @@ export default function Customers() {
           <CardContent className="p-4">
             <h3 className="font-semibold text-yellow-800">Debug Information</h3>
             <p className="text-sm text-yellow-700 mt-1">
-              No customers found in the list. Your role: <strong>{userRole || 'Unknown'}</strong>
+              No customers found in the list. Your role: <strong>{currentUser?.role || 'Unknown'}</strong>
             </p>
             <p className="text-sm text-yellow-700">
               Required roles for viewing customers: Management, Sales Executive, or HR Admin

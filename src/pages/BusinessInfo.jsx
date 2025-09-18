@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User } from "@/api/entities";
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Building2, 
   Phone, 
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 export default function BusinessInfo() {
+  const { user: currentUser, hasAccess } = useAuth();
   const [businessData, setBusinessData] = useState({
     companyName: '',
     tradeName: '',
@@ -47,8 +48,7 @@ export default function BusinessInfo() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState(null);
-  const [hasAccess, setHasAccess] = useState(false);
+  const [hasBusinessInfoAccess, setHasBusinessInfoAccess] = useState(false);
   const [accessLoading, setAccessLoading] = useState(true);
 
   // Check user authorization on component mount
@@ -58,27 +58,25 @@ export default function BusinessInfo() {
 
   // Load business info after access is confirmed
   useEffect(() => {
-    if (hasAccess) {
+    if (hasBusinessInfoAccess) {
       loadBusinessInfo();
     }
-  }, [hasAccess]);
+  }, [hasBusinessInfoAccess]);
 
   const checkUserAccess = async () => {
     try {
       setAccessLoading(true);
-      const currentUser = await User.me();
-      setUser(currentUser);
-      
+
       // Check if user has access to BusinessInfo module
-      const hasBusinessInfoAccess = await User.hasAccess('BusinessInfo');
-      setHasAccess(hasBusinessInfoAccess);
-      
-      if (!hasBusinessInfoAccess) {
+      const businessInfoAccess = hasAccess('BusinessInfo');
+      setHasBusinessInfoAccess(businessInfoAccess);
+
+      if (!businessInfoAccess) {
         console.warn('User does not have access to BusinessInfo module');
       }
     } catch (error) {
       console.error('Error checking user access:', error);
-      setHasAccess(false);
+      setHasBusinessInfoAccess(false);
     } finally {
       setAccessLoading(false);
     }
@@ -165,7 +163,7 @@ export default function BusinessInfo() {
   }
 
   // Show access denied if user doesn't have permission
-  if (!hasAccess) {
+  if (!hasBusinessInfoAccess) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50">
         <div className="text-center max-w-md">

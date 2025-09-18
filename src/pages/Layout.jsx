@@ -3,7 +3,7 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/api/entities";
+import { useAuth } from "@/contexts/AuthContext";
 import { UserAccess } from "@/api/entities";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -209,15 +209,7 @@ function NavItem({ item, hasAccess }) {
 }
 
 function CustomerPortalLayout({ children }) {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    User.me().then(setUser)
-      .catch((error) => {
-        console.warn("Not logged in for customer portal or error fetching user:", error);
-        User.login(); // Redirect to login if not authenticated
-      });
-  }, []);
+  const { user, signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -225,7 +217,7 @@ function CustomerPortalLayout({ children }) {
         localStorage.clear();
         sessionStorage.clear();
       }
-      await User.logout();
+      await signOut();
     } catch (error) {
       console.error("An error occurred during logout:", error);
     } finally {
@@ -268,6 +260,7 @@ function CustomerPortalLayout({ children }) {
 }
 
 export default function Layout({ children, currentPageName }) {
+  const { user: authUser, loading: authLoading, signOut } = useAuth();
   const [user, setUser] = useState(null);
   const [userAccess, setUserAccess] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -282,44 +275,49 @@ export default function Layout({ children, currentPageName }) {
     async function checkAuthAndRedirect() {
       setIsLoading(true);
       try {
-        const currentUser = await User.me();
-        setUser(currentUser);
+        // Use Auth0 user 
+        if (authUser) {
+          setUser(authUser);
 
-        // Scenario 1: A login was just completed (indicated by sessionStorage flag)
-        const loginInProgress = sessionStorage.getItem('login_in_progress');
-        
-        if (loginInProgress === 'true') {
-          sessionStorage.removeItem('login_in_progress'); // Clear the flag immediately
+          // Scenario 1: A login was just completed (indicated by sessionStorage flag)
+          const loginInProgress = sessionStorage.getItem('login_in_progress');
 
-          // Perform the redirect after successful login
-          if (currentUser.role === 'Customer') {
-            window.location.href = createPageUrl('MobileBooking');
-          } else {
-            window.location.href = createPageUrl('Dashboard');
-          }
-          return; // Stop execution to allow redirect to happen
-        }
+          if (loginInProgress === 'true') {
+            sessionStorage.removeItem('login_in_progress'); // Clear the flag immediately
 
-        // Scenario 2: User is authenticated from a previous session but is on a protected page.
-        // We set up their access rights but DO NOT redirect them from the landing page.
-        if (currentPageName !== 'LandingPage') {
-            console.log('🎯 Layout: Setting up access for user role:', currentUser.role);
-            
-            // User.me() now includes all access data, so we can use it directly
-            const userAccessData = {
-              role: currentUser.role,
-              accessible_modules: currentUser.accessible_modules || [],
-              user_email: currentUser.email
-            };
-            
-            // For Management role, ensure 'all' modules access for backward compatibility
-            if (currentUser.role === 'Management') {
-              console.log('👑 Layout: Management user detected, granting full access');
-              userAccessData.accessible_modules = 'all';
+            // Perform the redirect after successful login
+            if (authUser.role === 'Customer') {
+              window.location.href = createPageUrl('MobileBooking');
+            } else {
+              window.location.href = createPageUrl('Dashboard');
             }
-            
-            console.log('📋 Layout: Setting userAccess:', userAccessData);
-            setUserAccess(userAccessData);
+            return; // Stop execution to allow redirect to happen
+          }
+
+          // Scenario 2: User is authenticated from a previous session but is on a protected page.
+          // We set up their access rights but DO NOT redirect them from the landing page.
+          if (currentPageName !== 'LandingPage') {
+              console.log('🎯 Layout: Setting up access for user role:', authUser.role);
+
+              // Auth0 user already includes all access data
+              const userAccessData = {
+                role: authUser.role,
+                accessible_modules: authUser.accessible_modules || [],
+                user_email: authUser.email
+              };
+
+              // For Management role, ensure 'all' modules access for backward compatibility
+              if (authUser.role === 'Management') {
+                console.log('👑 Layout: Management user detected, granting full access');
+                userAccessData.accessible_modules = 'all';
+              }
+
+              console.log('📋 Layout: Setting userAccess:', userAccessData);
+              setUserAccess(userAccessData);
+          }
+        } else {
+          // No authenticated user
+          setUser(null);
         }
       } catch (error) {
         // User is not authenticated
@@ -329,16 +327,18 @@ export default function Layout({ children, currentPageName }) {
         // If they are on a protected page (not landing page), force login.
         // If they are on the landing page, nothing to do, as it's publicly accessible.
         if (currentPageName !== 'LandingPage') {
-          // Set a flag before redirecting to login
-          sessionStorage.setItem('login_in_progress', 'true');
-          await User.login();
+          // Redirect to login page
+          window.location.href = '/login';
         }
       } finally {
         setIsLoading(false);
       }
     }
-    checkAuthAndRedirect();
-  }, [currentPageName, location.pathname]);
+
+    if (!authLoading) {
+      checkAuthAndRedirect();
+    }
+  }, [currentPageName, location.pathname, authUser, authLoading]);
 
   // If the current page is the landing page or rent cars page, render it without any layout wrapper
   if (currentPageName === 'LandingPage' || currentPageName === 'RentCars') {
@@ -392,8 +392,8 @@ export default function Layout({ children, currentPageName }) {
         localStorage.clear();
         sessionStorage.clear();
       }
-      // Call the official logout method from the SDK
-      await User.logout();
+      // Call Auth0 signOut method
+      await signOut();
     } catch (error)
     {
       console.error("An error occurred during logout:", error);

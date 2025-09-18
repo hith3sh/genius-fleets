@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Lead } from '@/api/entities';
-import { User } from '@/api/entities';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ const statusColors = {
 };
 
 export default function Leads() {
+  const { user: currentUser } = useAuth();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [salesReps, setSalesReps] = useState([]);
@@ -88,8 +89,9 @@ export default function Leads() {
 
   const loadSalesReps = async () => {
     try {
+      const { User } = await import('@/api/entities');
       const users = await User.list();
-      const reps = users.filter(user => 
+      const reps = users.filter(user =>
         user.role === 'Sales Executive' || user.role === 'Management'
       );
       setSalesReps(reps);
@@ -103,7 +105,6 @@ export default function Leads() {
       console.log('Submitting lead data:', leadData); // Debug log
 
       // Debug: Check current user and permissions
-      const currentUser = await User.me();
       console.log('Current user info:', currentUser);
 
       if (editingLead) {

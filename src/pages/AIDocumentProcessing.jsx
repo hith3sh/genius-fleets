@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AIDocumentProcessing from '@/api/entities/aiDocumentProcessing';
-import User from '@/api/entities/user';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -159,6 +159,7 @@ const documentTypeSchemas = {
 };
 
 export default function AIDocumentProcessingPage() {
+  const { user: currentUser } = useAuth();
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadForm, setShowUploadForm] = useState(false);
@@ -169,7 +170,6 @@ export default function AIDocumentProcessingPage() {
   const [typeFilter, setTypeFilter] = useState('All');
   const [uploadingFile, setUploadingFile] = useState(false);
   const [processingDocument, setProcessingDocument] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   
   const [uploadFormData, setUploadFormData] = useState({
     document_type: 'Invoice',
@@ -180,17 +180,7 @@ export default function AIDocumentProcessingPage() {
 
   useEffect(() => {
     fetchData();
-    loadCurrentUser();
   }, []);
-
-  const loadCurrentUser = async () => {
-    try {
-      const user = await User.me();
-      setCurrentUser(user);
-    } catch (error) {
-      console.error('Error loading user:', error);
-    }
-  };
 
   const fetchData = async () => {
     setIsLoading(true);
