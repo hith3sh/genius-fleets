@@ -44,10 +44,11 @@ export function AuthProvider({ children }) {
             hasSupabaseURL: !!process.env.VITE_SUPABASE_URL
           });
 
+          // Fixed method chaining - eq() must come before select()
           const { data: existingUser } = await supabase
             .from('user_access')
-            .select('id')
             .eq('user_email', auth0User.email)
+            .select('id')
             .single();
 
           if (!existingUser) {
