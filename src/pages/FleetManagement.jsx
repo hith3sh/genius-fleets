@@ -98,39 +98,13 @@ export default function FleetManagement() {
     try {
       console.log('🔄 Loading fleet vehicles data...');
 
-      // Multi-level fallback loading strategy
-      let vehiclesData = [];
-
-      try {
-        // First try with updated_date ordering
-        vehiclesData = await Vehicle.list('-updated_date');
-        console.log('✅ Vehicles loaded with updated_date ordering:', vehiclesData?.length || 0);
-      } catch (orderError) {
-        console.warn('⚠️ updated_date ordering failed, trying created_at:', orderError.message);
-        try {
-          // Try with created_at ordering instead
-          vehiclesData = await Vehicle.list('-created_at');
-          console.log('✅ Vehicles loaded with created_at ordering:', vehiclesData?.length || 0);
-        } catch (createdAtError) {
-          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
-          try {
-            // Try without any ordering
-            vehiclesData = await Vehicle.list();
-            console.log('✅ Vehicles loaded without ordering:', vehiclesData?.length || 0);
-          } catch (basicError) {
-            console.warn('⚠️ Basic vehicle list failed, trying direct query:', basicError.message);
-            // Direct Railway query as last resort
-            const { supabase } = await import('@/lib/railway-db');
-            const result = await supabase.from('vehicle').select('*');
-            if (result.error) throw result.error;
-            vehiclesData = result.data || [];
-            console.log('✅ Vehicles loaded via direct query:', vehiclesData.length);
-          }
-        }
-      }
+      // Load vehicles using Entity API and sort client-side
+      const allVehicles = await Vehicle.list();
+      const vehiclesData = allVehicles
+        .sort((a, b) => new Date(b.updated_date || b.created_at) - new Date(a.updated_date || a.created_at));
 
       setVehicles(vehiclesData || []);
-      console.log('🏁 Final vehicle count:', vehiclesData?.length || 0);
+      console.log('✅ FleetManagement: Loaded', vehiclesData?.length || 0, 'vehicles');
 
     } catch (error) {
       console.error('❌ Error loading vehicles:', error);

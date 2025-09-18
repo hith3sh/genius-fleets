@@ -36,54 +36,27 @@ export default function DamageLogs() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Multi-level fallback loading for incidents
-      let incidentsData = [];
-      try {
-        incidentsData = await IncidentLog.list('-incident_date');
-      } catch (incidentError) {
-        console.warn('Primary incident loading failed, trying alternative ordering:', incidentError);
-        try {
-          incidentsData = await IncidentLog.list('-created_at');
-        } catch (incidentError2) {
-          console.warn('Alternative incident ordering failed, trying without ordering:', incidentError2);
-          try {
-            incidentsData = await IncidentLog.list();
-          } catch (incidentError3) {
-            console.warn('Entity method failed, trying direct Supabase query:', incidentError3);
-            const { supabase } = await import('@/lib/railway-db');
-            const allIncidents = await IncidentLog.list();
-            const data = allIncidents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            incidentsData = data || [];
-          }
-        }
-      }
+      console.log('🔍 DamageLogs: Loading incidents and vehicles...');
 
-      // Multi-level fallback loading for vehicles
-      let vehiclesData = [];
-      try {
-        vehiclesData = await Vehicle.list('-updated_date');
-      } catch (vehicleError) {
-        console.warn('Primary vehicle loading failed, trying alternative ordering:', vehicleError);
-        try {
-          vehiclesData = await Vehicle.list('-created_at');
-        } catch (vehicleError2) {
-          console.warn('Alternative vehicle ordering failed, trying without ordering:', vehicleError2);
-          try {
-            vehiclesData = await Vehicle.list();
-          } catch (vehicleError3) {
-            console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
-            const { supabase } = await import('@/lib/railway-db');
-            const allVehicles = await Vehicle.list();
-            const data = allVehicles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            vehiclesData = data || [];
-          }
-        }
-      }
+      // Load incidents using Entity API and sort client-side
+      const allIncidents = await IncidentLog.list();
+      const incidentsData = allIncidents
+        .sort((a, b) => {
+          // Sort by incident_date first, then by created_at as fallback
+          const dateA = new Date(a.incident_date || a.created_at);
+          const dateB = new Date(b.incident_date || b.created_at);
+          return dateB - dateA;
+        });
+
+      // Load vehicles using Entity API and sort client-side
+      const allVehicles = await Vehicle.list();
+      const vehiclesData = allVehicles
+        .sort((a, b) => new Date(b.updated_date || b.created_at) - new Date(a.updated_date || a.created_at));
 
       setIncidents(incidentsData);
       setVehicles(vehiclesData);
 
-      console.log(`Loaded ${incidentsData.length} incidents, ${vehiclesData.length} vehicles`);
+      console.log(`✅ DamageLogs: Loaded ${incidentsData.length} incidents, ${vehiclesData.length} vehicles`);
     } catch (error) {
       console.error('Error fetching data:', error);
       

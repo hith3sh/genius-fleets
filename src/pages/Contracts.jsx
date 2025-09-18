@@ -52,51 +52,24 @@ export default function Contracts() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Multi-level fallback loading for contracts
-      let contractsData = [];
-      try {
-        contractsData = await VehicleContract.list('-created_at');
-      } catch (contractError) {
-        console.warn('Primary contract loading failed, trying alternative ordering:', contractError);
-        try {
-          contractsData = await VehicleContract.list('-start_date');
-        } catch (contractError2) {
-          console.warn('Alternative contract ordering failed, trying without ordering:', contractError2);
-          try {
-            contractsData = await VehicleContract.list();
-          } catch (contractError3) {
-            console.warn('Entity method failed, trying direct Supabase query:', contractError3);
-            const { supabase } = await import('@/lib/railway-db');
-            const allContracts = await VehicleContract.list();
-            const data = allContracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            contractsData = data || [];
-          }
-        }
-      }
+      console.log('🔍 Contracts: Loading contracts and vehicles...');
 
-      // Multi-level fallback loading for vehicles
-      let vehiclesData = [];
-      try {
-        vehiclesData = await Vehicle.list('-updated_date');
-      } catch (vehicleError) {
-        console.warn('Primary vehicle loading failed, trying alternative ordering:', vehicleError);
-        try {
-          vehiclesData = await Vehicle.list('-created_at');
-        } catch (vehicleError2) {
-          console.warn('Alternative vehicle ordering failed, trying without ordering:', vehicleError2);
-          try {
-            vehiclesData = await Vehicle.list();
-          } catch (vehicleError3) {
-            console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
-            const { supabase } = await import('@/lib/railway-db');
-            const allVehicles = await Vehicle.list();
-            const data = allVehicles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            vehiclesData = data || [];
-          }
-        }
-      }
-      
-      console.log(`Loaded ${contractsData.length} contracts, ${vehiclesData.length} vehicles`);
+      // Load contracts using Entity API and sort client-side
+      const allContracts = await VehicleContract.list();
+      const contractsData = allContracts
+        .sort((a, b) => {
+          // Sort by start_date first, then by created_at as fallback
+          const dateA = new Date(a.start_date || a.created_at);
+          const dateB = new Date(b.start_date || b.created_at);
+          return dateB - dateA;
+        });
+
+      // Load vehicles using Entity API and sort client-side
+      const allVehicles = await Vehicle.list();
+      const vehiclesData = allVehicles
+        .sort((a, b) => new Date(b.updated_date || b.created_at) - new Date(a.updated_date || a.created_at));
+
+      console.log(`✅ Contracts: Loaded ${contractsData.length} contracts, ${vehiclesData.length} vehicles`);
       setContracts(contractsData);
       setVehicles(vehiclesData);
     } catch (error) {
