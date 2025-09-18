@@ -27,52 +27,18 @@ export default function FeaturedCars() {
     async function loadVehicles() {
       setIsLoading(true);
       try {
-        console.log("=== Debugging Vehicle Loading ===");
-        
-        // Test direct Supabase connection with detailed logging
-        const { supabase } = await import('@/lib/railway-db');
-        
-        // Check authentication status
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log("Current user:", user);
-        console.log("Auth error:", authError);
-        
-        // Test direct query with full error details
-        const { data: directData, error: directError } = await supabase
-          .from('vehicle')
-          .select('*');
-        
-        console.log("Direct query - Data:", directData);
-        console.log("Direct query - Error:", directError);
-        
-        if (directError) {
-          console.log("Error code:", directError.code);
-          console.log("Error message:", directError.message);
-          console.log("Error details:", directError.details);
-          console.log("Error hint:", directError.hint);
-        }
-        
-        // Test with count to see if RLS is blocking
-        const { count, error: countError } = await supabase
-          .from('vehicle')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log("Row count:", count);
-        console.log("Count error:", countError);
-        
-        // Test Entity API
-        try {
-          const allVehicles = await Vehicle.list();
-          console.log("Vehicle.list() result:", allVehicles);
-          
-          if (allVehicles && allVehicles.length > 0) {
-            setVehicles(allVehicles.slice(0, 8));
-          } else {
-            console.log("No vehicles returned from API");
-            setVehicles([]);
-          }
-        } catch (entityError) {
-          console.error("Entity API error:", entityError);
+        console.log("=== Loading Vehicles for Landing Page ===");
+
+        // Use Entity API which should handle the database connection properly
+        const allVehicles = await Vehicle.list();
+        console.log("Vehicle.list() result:", allVehicles);
+
+        if (allVehicles && allVehicles.length > 0) {
+          // Take first 8 vehicles for featured section
+          setVehicles(allVehicles.slice(0, 8));
+          console.log("Successfully loaded", allVehicles.length, "vehicles");
+        } else {
+          console.log("No vehicles returned from API");
           setVehicles([]);
         }
         

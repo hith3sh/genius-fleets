@@ -9,7 +9,6 @@ import { UploadFile } from '@/api/integrations';
 import { Vehicle } from '@/api/entities';
 import { Customer } from '@/api/entities';
 import { Booking } from '@/api/entities';
-import { User as UserEntity } from '@/api/entities'; // Renamed User import to UserEntity to avoid conflict with lucide-react User icon
 import { createPageUrl } from '@/utils';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
