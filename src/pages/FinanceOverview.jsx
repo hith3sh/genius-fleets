@@ -21,6 +21,8 @@ export default function FinanceOverview() {
         Invoice.list(),
         Expense.list(),
       ]);
+      console.log('Invoices data:', invoicesData);
+      console.log('Expenses data:', expensesData);
       setInvoices(invoicesData);
       setExpenses(expensesData);
       setIsLoading(false);
@@ -28,8 +30,14 @@ export default function FinanceOverview() {
     fetchData();
   }, []);
 
-  const totalIncome = invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.amount, 0);
-  const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const totalIncome = invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => {
+    console.log('Invoice amount:', inv.amount, typeof inv.amount);
+    return sum + (parseFloat(inv.amount) || 0);
+  }, 0);
+  const totalExpenses = expenses.reduce((sum, exp) => {
+    console.log('Expense amount:', exp.amount, typeof exp.amount);
+    return sum + (parseFloat(exp.amount) || 0);
+  }, 0);
   const netProfit = totalIncome - totalExpenses;
 
   const monthlyData = invoices.reduce((acc, inv) => {

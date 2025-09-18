@@ -45,13 +45,11 @@ export function AuthProvider({ children }) {
           });
 
           // Simplified approach - get all user_access records and filter manually
-          console.log('🔍 Checking for existing user_access record for:', auth0User.email);
 
           const { data: allUsers, error: queryError } = await supabase
             .from('user_access')
             .select('*');
 
-          console.log('🔍 All users query result:', allUsers, 'Error:', queryError);
 
           // Find the specific user manually
           let existingUser = allUsers?.find(user => user.user_email === auth0User.email);
@@ -65,13 +63,11 @@ export function AuthProvider({ children }) {
             };
 
             await supabase.from('user_access').insert(newUserData);
-            console.log('Created user_access record for new user:', auth0User.email);
 
             // Use the newly created user data
             existingUser = newUserData;
           }
 
-          console.log('🔍 Final user_access record:', existingUser);
 
         } catch (error) {
           console.warn('Could not ensure user_access record:', error);
@@ -85,7 +81,6 @@ export function AuthProvider({ children }) {
             .select('*');
 
           userAccessData = refreshedUsers?.find(user => user.user_email === auth0User.email);
-          console.log('🔍 Using user_access data:', userAccessData);
         } catch (error) {
           console.warn('Could not fetch user_access record:', error);
         }
