@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+import { supabase } from '@/lib/railway-db';
 
 // Create auth context
 const AuthContext = createContext();
@@ -17,26 +18,60 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Transform Auth0 user to our format
+  // Transform Auth0 user to our format and set RLS context
   useEffect(() => {
-    if (auth0User) {
-      const transformedUser = {
-        id: auth0User.sub,
-        email: auth0User.email,
-        name: auth0User.name,
-        picture: auth0User.picture,
-        role: auth0User['https://genius-fleets.com/roles']?.[0] || 'Staff',
-        accessible_modules: auth0User['https://genius-fleets.com/modules'] || ['Fleet Health', 'Bookings'],
-        email_verified: auth0User.email_verified,
-        created_at: auth0User.created_at,
-        updated_at: auth0User.updated_at,
-      };
-      setUser(transformedUser);
-    } else {
-      setUser(null);
-    }
-    setLoading(isLoading);
-    setError(auth0Error?.message || null);
+    const setupUser = async () => {
+      if (auth0User) {
+        // Set user context for RLS
+        try {
+          await supabase.rpc('set_current_user_email', {
+            email: auth0User.email
+          });
+        } catch (error) {
+          console.warn('Could not set user context for RLS:', error);
+        }
+
+        // Ensure user_access record exists (for new Auth0 users)
+        try {
+          const { data: existingUser } = await supabase
+            .from('user_access')
+            .select('id')
+            .eq('user_email', auth0User.email)
+            .single();
+
+          if (!existingUser) {
+            // Create new user_access record with default permissions
+            await supabase.from('user_access').insert({
+              user_email: auth0User.email,
+              role: 'Staff',
+              accessible_modules: ['Fleet Health', 'Bookings']
+            });
+            console.log('Created user_access record for new user:', auth0User.email);
+          }
+        } catch (error) {
+          console.warn('Could not ensure user_access record:', error);
+        }
+
+        const transformedUser = {
+          id: auth0User.sub,
+          email: auth0User.email,
+          name: auth0User.name,
+          picture: auth0User.picture,
+          role: auth0User['https://genius-fleets.com/roles']?.[0] || 'Staff',
+          accessible_modules: auth0User['https://genius-fleets.com/modules'] || ['Fleet Health', 'Bookings'],
+          email_verified: auth0User.email_verified,
+          created_at: auth0User.created_at,
+          updated_at: auth0User.updated_at,
+        };
+        setUser(transformedUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(isLoading);
+      setError(auth0Error?.message || null);
+    };
+
+    setupUser();
   }, [auth0User, auth0Error, isLoading]);
 
   // Auth functions using Auth0 React SDK

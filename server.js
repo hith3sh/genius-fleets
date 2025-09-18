@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import { Client } from 'pg';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -130,6 +131,159 @@ app.get('/api/files/:bucket/*', (req, res) => {
   } catch (error) {
     console.error('File serving error:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Database proxy routes for Railway PostgreSQL
+const dbClient = new Client({
+  connectionString: process.env.DATABASE_URL
+});
+
+// Connect to database on startup
+dbClient.connect().catch(err => {
+  console.error('Database connection error:', err);
+});
+
+// Generic database query proxy
+app.post('/api/db/query', async (req, res) => {
+  try {
+    const { query, params = [] } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query is required' });
+    }
+
+    const result = await dbClient.query(query, params);
+    res.json({ data: result.rows, error: null });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ data: null, error: error.message });
+  }
+});
+
+// Supabase-compatible table operations
+app.get('/api/db/:table', async (req, res) => {
+  try {
+    const { table } = req.params;
+    const { select = '*', filter, limit, offset } = req.query;
+
+    let query = `SELECT ${select} FROM ${table}`;
+    const params = [];
+
+    if (filter) {
+      const filters = JSON.parse(filter);
+      const conditions = [];
+      let paramIndex = 1;
+
+      for (const [key, value] of Object.entries(filters)) {
+        conditions.push(`${key} = $${paramIndex}`);
+        params.push(value);
+        paramIndex++;
+      }
+
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+    }
+
+    if (limit) {
+      query += ` LIMIT ${parseInt(limit)}`;
+    }
+
+    if (offset) {
+      query += ` OFFSET ${parseInt(offset)}`;
+    }
+
+    const result = await dbClient.query(query, params);
+    res.json({ data: result.rows, error: null });
+  } catch (error) {
+    console.error('Database select error:', error);
+    res.status(500).json({ data: null, error: error.message });
+  }
+});
+
+app.post('/api/db/:table', async (req, res) => {
+  try {
+    const { table } = req.params;
+    const data = req.body;
+
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+    const placeholders = values.map((_, index) => `$${index + 1}`);
+
+    const query = `
+      INSERT INTO ${table} (${columns.join(', ')})
+      VALUES (${placeholders.join(', ')})
+      RETURNING *
+    `;
+
+    const result = await dbClient.query(query, values);
+    res.json({ data: result.rows[0], error: null });
+  } catch (error) {
+    console.error('Database insert error:', error);
+    res.status(500).json({ data: null, error: error.message });
+  }
+});
+
+app.patch('/api/db/:table/:id', async (req, res) => {
+  try {
+    const { table, id } = req.params;
+    const data = req.body;
+
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+    const setClause = columns.map((col, index) => `${col} = $${index + 1}`);
+
+    const query = `
+      UPDATE ${table}
+      SET ${setClause.join(', ')}, updated_at = NOW()
+      WHERE id = $${values.length + 1}
+      RETURNING *
+    `;
+
+    const result = await dbClient.query(query, [...values, id]);
+    res.json({ data: result.rows[0], error: null });
+  } catch (error) {
+    console.error('Database update error:', error);
+    res.status(500).json({ data: null, error: error.message });
+  }
+});
+
+app.delete('/api/db/:table/:id', async (req, res) => {
+  try {
+    const { table, id } = req.params;
+
+    const query = `DELETE FROM ${table} WHERE id = $1 RETURNING *`;
+    const result = await dbClient.query(query, [id]);
+
+    res.json({ data: result.rows[0], error: null });
+  } catch (error) {
+    console.error('Database delete error:', error);
+    res.status(500).json({ data: null, error: error.message });
+  }
+});
+
+// RPC function calls
+app.post('/api/rpc/:function', async (req, res) => {
+  try {
+    const { function: functionName } = req.params;
+    const params = req.body;
+
+    let query;
+    let queryParams = [];
+
+    if (functionName === 'set_current_user_email') {
+      query = 'SELECT set_current_user_email($1)';
+      queryParams = [params.email];
+    } else {
+      return res.status(400).json({ error: 'Unknown function' });
+    }
+
+    const result = await dbClient.query(query, queryParams);
+    res.json({ data: result.rows, error: null });
+  } catch (error) {
+    console.error('RPC error:', error);
+    res.status(500).json({ data: null, error: error.message });
   }
 });
 

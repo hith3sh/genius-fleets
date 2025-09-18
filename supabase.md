@@ -5,15 +5,16 @@ YOUR-PASSWORDd=0y8dU98YLaCBCUb8
 postgresql://postgres:[YOUR-PASSWORD]@db.xvozdbgsvzgfnrqgngfe.supabase.co:5432/postgres
 
 
-How to do pg_dump?
-
-
-# After dumping data
+# After getting data
 # conenct to railway postgres
-railway connect postgres
+psql postgresql://postgres:SCyTeTNpfRevQwjxyCemlDSRNGDRtoNL@centerbeam.proxy.rlwy.net:17018/railway
+
+or railway connect postgres
 
 # Get your Railway database URL
 railway variables
 
 # Import to Railway
 psql $DATABASE_URL < supabase_backup.sql
+
+psql postgresql://postgres:SCyTeTNpfRevQwjxyCemlDSRNGDRtoNL@centerbeam.proxy.rlwy.net:17018/railway < supabase_data_full.sql

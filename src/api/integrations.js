@@ -1,8 +1,5 @@
-// Supabase integrations - these will need to be implemented as Supabase Edge Functions
-// or replaced with appropriate Supabase/third-party service integrations
-
-// Note: These integrations were previously using Base44's built-in services
-// You'll need to implement these using Supabase Edge Functions or third-party APIs
+// Railway PostgreSQL integrations via server-side API proxy
+// Database operations are handled through Express server endpoints
 
 export const Core = {
   InvokeLLM: async (...args) => {

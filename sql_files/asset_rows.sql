@@ -1,0 +1,1 @@
+INSERT INTO "public"."asset" ("id", "asset_name", "purchase_date", "purchase_cost", "depreciation_method", "lifespan_years", "depreciation_start_date", "created_at", "updated_at") VALUES ('8dfc8ce2-6aea-4073-b4cc-025cdf567727', 'Nissan Pathfinder', '2024-10-24', '45000.00', 'Straight-Line', '5', '2025-07-24', '2025-09-03 07:14:56.551062+00', '2025-09-03 07:14:56.551062+00');
