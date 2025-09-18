@@ -227,10 +227,10 @@ export default function BookingDetails({ booking, customer, vehicle, onEdit, onC
                 <label className="text-sm font-medium text-gray-600">Total Amount</label>
                 <div className="mt-1">
                   <p className="text-2xl font-bold text-gray-900">
-                    AED {booking.total_amount?.toFixed(2) || '0.00'}
+                    AED {(booking.total_amount || 0).toFixed(2)}
                   </p>
                   <p className="text-sm text-gray-600">
-                    AED {(booking.total_amount / calculateDays()).toFixed(2)} per day
+                    AED {((booking.total_amount || 0) / calculateDays()).toFixed(2)} per day
                   </p>
                 </div>
               </div>
@@ -260,7 +260,7 @@ export default function BookingDetails({ booking, customer, vehicle, onEdit, onC
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Rental ({calculateDays()} days)</span>
-              <span>AED {booking.total_amount?.toFixed(2) || '0.00'}</span>
+              <span>AED {(booking.total_amount || 0).toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Security Deposit</span>
@@ -273,7 +273,7 @@ export default function BookingDetails({ booking, customer, vehicle, onEdit, onC
             <div className="border-t pt-3">
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total Amount</span>
-                <span>AED {booking.total_amount?.toFixed(2) || '0.00'}</span>
+                <span>AED {(booking.total_amount || 0).toFixed(2)}</span>
               </div>
             </div>
           </div>

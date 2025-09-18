@@ -242,7 +242,7 @@ function CustomerPortalLayout({ children }) {
             <div className="flex items-center gap-4">
               {user && (
                 <span className="font-medium text-gray-700">
-                  Welcome, {user.full_name || user.email}
+                  Welcome, {user.name || user.email}
                 </span>
               )}
               <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -413,13 +413,13 @@ export default function Layout({ children, currentPageName }) {
         <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50">
           <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
             <span className="text-white font-semibold text-sm">
-              {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </span>
           </div>
           {isExpanded &&
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-800 text-sm truncate">
-                {user?.full_name || 'User'}
+                {user?.name || 'User'}
               </p>
               <p className="text-xs text-gray-600 truncate">
                 {user?.role || 'User'} Access

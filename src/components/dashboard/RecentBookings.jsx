@@ -117,7 +117,7 @@ export default function RecentBookings({ isLoading }) {
                         {booking.pickup_location || 'Pickup location TBD'}
                       </span>
                       <span className="font-semibold text-gray-900">
-                        ${booking.total_amount?.toFixed(2) || '0.00'}
+                        ${(booking.total_amount || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>

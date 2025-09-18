@@ -262,15 +262,15 @@ export default function BookingReview() {
                 </div>
                 <div class="info-item">
                     <div class="info-label">Subtotal:</div>
-                    <div class="info-value">AED ${costs.totalAmount.toFixed(2)}</div>
+                    <div class="info-value">AED ${(costs.totalAmount || 0).toFixed(2)}</div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">VAT (5%):</div>
-                    <div class="info-value">AED ${costs.vatAmount.toFixed(2)}</div>
+                    <div class="info-value">AED ${(costs.vatAmount || 0).toFixed(2)}</div>
                 </div>
             </div>
             <div class="total-amount">
-                💳 Total Amount: AED ${costs.finalAmount.toFixed(2)}
+                💳 Total Amount: AED ${(costs.finalAmount || 0).toFixed(2)}
             </div>
         </div>
         
@@ -479,9 +479,9 @@ export default function BookingReview() {
               </div>
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold text-lg flex items-center gap-2 mb-3"><DollarSign className="text-blue-600"/>Cost Summary</h3>
-                <p><strong>Subtotal:</strong> AED {costs.totalAmount.toFixed(2)}</p>
-                <p><strong>VAT (5%):</strong> AED {costs.vatAmount.toFixed(2)}</p>
-                <p className="font-bold text-lg mt-2"><strong>Total:</strong> AED {costs.finalAmount.toFixed(2)}</p>
+                <p><strong>Subtotal:</strong> AED {(costs.totalAmount || 0).toFixed(2)}</p>
+                <p><strong>VAT (5%):</strong> AED {(costs.vatAmount || 0).toFixed(2)}</p>
+                <p className="font-bold text-lg mt-2"><strong>Total:</strong> AED {(costs.finalAmount || 0).toFixed(2)}</p>
               </div>
             </div>
              <div className="p-4 border rounded-lg">

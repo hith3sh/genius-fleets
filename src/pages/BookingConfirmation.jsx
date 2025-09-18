@@ -164,9 +164,9 @@ export default function BookingConfirmation() {
               <div>
                 <h4 className="font-semibold mb-3">Payment Summary</h4>
                 <p><strong>Daily Rate:</strong> AED {vehicle.daily_rate}</p>
-                <p><strong>Subtotal:</strong> AED {booking.total_amount.toFixed(2)}</p>
-                <p><strong>VAT (5%):</strong> AED {booking.vat_amount.toFixed(2)}</p>
-                <p className="text-lg font-bold text-green-600"><strong>Total:</strong> AED {booking.final_amount.toFixed(2)}</p>
+                <p><strong>Subtotal:</strong> AED {(booking.total_amount || 0).toFixed(2)}</p>
+                <p><strong>VAT (5%):</strong> AED {(booking.vat_amount || 0).toFixed(2)}</p>
+                <p className="text-lg font-bold text-green-600"><strong>Total:</strong> AED {(booking.final_amount || 0).toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
