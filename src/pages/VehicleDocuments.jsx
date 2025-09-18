@@ -58,42 +58,18 @@ export default function VehicleDocuments() {
     try {
       console.log('🔄 Loading vehicle documents and vehicles data...');
 
-      // Load documents and vehicles with fallback logic similar to other pages
+      // Load documents and vehicles using simple Entity API calls + client-side sorting
       let documentsData = [];
       let vehiclesData = [];
 
-      try {
-        // Try with ordering first
-        documentsData = await VehicleDocument.list('-upload_date');
-        console.log('✅ Documents loaded with ordering:', documentsData?.length || 0);
-      } catch (orderError) {
-        console.warn('⚠️ Documents ordering failed, trying without ordering:', orderError.message);
-        try {
-          documentsData = await VehicleDocument.list();
-          console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
-        } catch (basicError) {
-          console.warn('⚠️ Basic documents list failed, trying direct query:', basicError.message);
-          // Direct Railway query as fallback
-          const { supabase } = await import('@/lib/railway-db');
-          const result = await supabase.from('vehicle_document').select('*');
-          if (result.error) throw result.error;
-          documentsData = result.data || [];
-          console.log('✅ Documents loaded via direct query:', documentsData.length);
-        }
-      }
+      // Load documents using Entity API and sort client-side
+      const allDocuments = await VehicleDocument.list();
+      documentsData = allDocuments
+        .sort((a, b) => new Date(b.upload_date || b.created_at) - new Date(a.upload_date || a.created_at));
 
-      try {
-        vehiclesData = await Vehicle.list();
-        console.log('✅ Vehicles loaded:', vehiclesData?.length || 0);
-      } catch (vehicleError) {
-        console.warn('⚠️ Vehicle list failed, trying direct query:', vehicleError.message);
-        // Direct Railway query as fallback
-        const { supabase } = await import('@/lib/railway-db');
-        const result = await supabase.from('vehicle').select('*');
-        if (result.error) throw result.error;
-        vehiclesData = result.data || [];
-        console.log('✅ Vehicles loaded via direct query:', vehiclesData.length);
-      }
+      vehiclesData = await Vehicle.list();
+
+      console.log('✅ VehicleDocuments loaded:', documentsData?.length || 0, 'Vehicles:', vehiclesData?.length || 0);
 
       setDocuments(documentsData || []);
       setVehicles(vehiclesData || []);

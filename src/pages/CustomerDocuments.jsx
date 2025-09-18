@@ -38,52 +38,18 @@ export default function CustomerDocuments() {
     try {
       console.log('🔄 Loading customer documents and customers data...');
 
-      // Load documents and customers with fallback logic
+      // Load documents and customers using simple Entity API calls + client-side sorting
       let documentsData = [];
       let customersData = [];
 
-      // Load documents with multi-level fallback
-      try {
-        // Try with created_date ordering first
-        documentsData = await CustomerDocument.list('-created_date');
-        console.log('✅ Documents loaded with created_date ordering:', documentsData?.length || 0);
-      } catch (orderError) {
-        console.warn('⚠️ created_date ordering failed, trying created_at:', orderError.message);
-        try {
-          // Try with created_at ordering instead
-          documentsData = await CustomerDocument.list('-created_at');
-          console.log('✅ Documents loaded with created_at ordering:', documentsData?.length || 0);
-        } catch (createdAtError) {
-          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
-          try {
-            // Try without any ordering
-            documentsData = await CustomerDocument.list();
-            console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
-          } catch (basicError) {
-            console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
-            // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/railway-db');
-            const result = await supabase.from('customer_document').select('*');
-            if (result.error) throw result.error;
-            documentsData = result.data || [];
-            console.log('✅ Documents loaded via direct query:', documentsData.length);
-          }
-        }
-      }
+      // Load documents using Entity API and sort client-side
+      const allDocuments = await CustomerDocument.list();
+      documentsData = allDocuments
+        .sort((a, b) => new Date(b.created_date || b.created_at) - new Date(a.created_date || a.created_at));
 
-      // Load customers with fallback
-      try {
-        customersData = await Customer.list();
-        console.log('✅ Customers loaded:', customersData?.length || 0);
-      } catch (customerError) {
-        console.warn('⚠️ Customer list failed, trying direct query:', customerError.message);
-        // Direct Supabase query as fallback
-        const { supabase } = await import('@/lib/railway-db');
-        const result = await supabase.from('customer').select('*');
-        if (result.error) throw result.error;
-        customersData = result.data || [];
-        console.log('✅ Customers loaded via direct query:', customersData.length);
-      }
+      customersData = await Customer.list();
+
+      console.log('✅ CustomerDocuments loaded:', documentsData?.length || 0, 'Customers:', customersData?.length || 0);
 
       setDocuments(documentsData || []);
       setCustomers(customersData || []);

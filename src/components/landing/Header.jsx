@@ -4,7 +4,7 @@ import { LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 
-const logoUrl = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png";
+const logoUrl = "/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png";
 
 export default function Header() {
   // Set browser title for landing page

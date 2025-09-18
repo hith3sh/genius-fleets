@@ -35,10 +35,12 @@ export default function MobileBooking() {
 
     setIsLoading(true);
     try {
-      const vehicles = await Vehicle.filter({
-        vehicle_class: selectedClass,
-        status: 'Available'
-      });
+      // Get all vehicles and filter client-side for better compatibility
+      const allVehicles = await Vehicle.list();
+      const vehicles = allVehicles.filter(vehicle =>
+        vehicle.vehicle_class === selectedClass &&
+        vehicle.status === 'Available'
+      );
 
       setAvailableVehicles(vehicles);
       setShowVehicles(true);

@@ -301,7 +301,7 @@ export default function Invoices() {
           </div>
           <div className="flex-1 text-center">
             <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/bf4adeb3e_GeniusFleetsLogo.png" 
+              src="/api/files/base44-prod/public/bf4adeb3e_GeniusFleetsLogo.png" 
               alt="Genius Fleets Logo" 
               className="w-24 mx-auto" 
             />

@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { Client } from 'pg';
+import multer from 'multer';
 import 'dotenv/config';
 
 // Import data transformer
@@ -135,6 +136,76 @@ app.get('/api/files/:bucket/*', (req, res) => {
   } catch (error) {
     console.error('File serving error:', error);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const { bucket } = req.params;
+    const storageBasePath = process.env.STORAGE_PATH || '/app/storage';
+    const uploadPath = path.join(storageBasePath, bucket);
+
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const ext = path.extname(file.originalname);
+    const filename = `${timestamp}_${randomString}${ext}`;
+    cb(null, filename);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow images and PDFs
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('File type not allowed'), false);
+    }
+  }
+});
+
+// File upload endpoint
+app.post('/api/storage/:bucket/upload', upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const { bucket } = req.params;
+    const filename = req.file.filename;
+    const publicUrl = `/api/files/${bucket}/${filename}`;
+
+    res.json({
+      data: {
+        id: filename,
+        name: req.file.originalname,
+        bucket: bucket,
+        public_url: publicUrl,
+        full_url: `${req.protocol}://${req.get('host')}${publicUrl}`,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        created_at: new Date().toISOString()
+      },
+      error: null
+    });
+  } catch (error) {
+    console.error('File upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
   }
 });
 

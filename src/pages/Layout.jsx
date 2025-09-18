@@ -234,7 +234,7 @@ function CustomerPortalLayout({ children }) {
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
               <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png"
+                src="/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png"
                 alt="Al Jisr Car Rentals Logo"
                 className="h-14 object-contain"
               />
@@ -444,7 +444,7 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <img
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png"
+            src="/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png"
             alt="Al Jisr Car Rentals Logo"
             className="h-64 object-contain mx-auto mb-8"
           />
@@ -480,7 +480,7 @@ export default function Layout({ children, currentPageName }) {
           <SidebarHeader className="border-b border-gray-200/50">
             <div className="flex flex-col items-center p-4">
               <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png"
+                src="/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png"
                 alt="Al Jisr Car Rentals Logo" 
                 className="w-full h-auto max-h-32 object-contain"
               />
@@ -507,7 +507,7 @@ export default function Layout({ children, currentPageName }) {
                 <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200" />
               )}
               <img
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/4492b025e_AlJisrCarRentals.png"
+                src="/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png"
                 alt="Al Jisr Car Rentals Logo"
                 className="h-12 object-contain"
               />

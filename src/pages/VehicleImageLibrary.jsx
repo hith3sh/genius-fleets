@@ -56,25 +56,15 @@ export default function VehicleImageLibrary() {
   const loadImages = async () => {
     setIsLoading(true);
     try {
-      // Try with created_at first, fallback to no ordering if that fails
-      let data;
-      try {
-        data = await CarImage.list('created_at', false); // false = descending order
-      } catch (orderError) {
-        console.log('created_at ordering failed, trying without ordering:', orderError.message);
-        try {
-          data = await CarImage.list();
-        } catch (basicError) {
-          console.log('Basic list failed, trying direct query:', basicError.message);
-          // Direct Supabase query as last resort
-          const { supabase } = await import('@/lib/railway-db');
-          const result = await supabase.from('car_image').select('*');
-          
-          if (result.error) throw result.error;
-          data = result.data;
-        }
-      }
-      setCarImages(data || []);
+      console.log('🔍 VehicleImageLibrary: Loading car images...');
+
+      // Load images using Entity API and sort client-side
+      const allImages = await CarImage.list();
+      const imagesData = allImages
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setCarImages(imagesData || []);
+      console.log(`✅ VehicleImageLibrary: Loaded ${imagesData?.length || 0} car images`);
     } catch (error) {
       console.error("Error loading car images:", error);
       setCarImages([]);

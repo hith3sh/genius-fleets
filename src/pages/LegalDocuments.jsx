@@ -60,36 +60,15 @@ export default function LegalDocuments() {
     try {
       console.log('🔄 Loading legal documents data...');
 
-      // Load documents with multi-level fallback
+      // Load documents using simple Entity API call + client-side sorting
       let documentsData = [];
 
-      try {
-        // Try with upload_date ordering first
-        documentsData = await LegalDocument.list('-upload_date');
-        console.log('✅ Documents loaded with upload_date ordering:', documentsData?.length || 0);
-      } catch (orderError) {
-        console.warn('⚠️ upload_date ordering failed, trying created_at:', orderError.message);
-        try {
-          // Try with created_at ordering instead
-          documentsData = await LegalDocument.list('-created_at');
-          console.log('✅ Documents loaded with created_at ordering:', documentsData?.length || 0);
-        } catch (createdAtError) {
-          console.warn('⚠️ created_at ordering failed, trying without ordering:', createdAtError.message);
-          try {
-            // Try without any ordering
-            documentsData = await LegalDocument.list();
-            console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
-          } catch (basicError) {
-            console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
-            // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/railway-db');
-            const result = await supabase.from('legal_document').select('*');
-            if (result.error) throw result.error;
-            documentsData = result.data || [];
-            console.log('✅ Documents loaded via direct query:', documentsData.length);
-          }
-        }
-      }
+      // Load documents using Entity API and sort client-side
+      const allDocuments = await LegalDocument.list();
+      documentsData = allDocuments
+        .sort((a, b) => new Date(b.upload_date || b.created_at) - new Date(a.upload_date || a.created_at));
+
+      console.log('✅ LegalDocuments loaded:', documentsData?.length || 0);
 
       setDocuments(documentsData || []);
       console.log('🏁 Final document count:', documentsData?.length || 0);
