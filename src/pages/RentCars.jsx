@@ -47,10 +47,20 @@ export default function RentCars() {
   const loadVehicles = async () => {
     setIsLoading(true);
     try {
-      const data = await Vehicle.filter({ status: 'Available' });
-      setVehicles(data);
+      // Get all vehicles first, then filter client-side for now
+      const allVehicles = await Vehicle.list();
+      console.log('All vehicles loaded:', allVehicles);
+
+      // Filter for available vehicles
+      const availableVehicles = allVehicles.filter(vehicle =>
+        vehicle.status === 'Available' || vehicle.status === 'available'
+      );
+
+      console.log('Available vehicles:', availableVehicles);
+      setVehicles(availableVehicles);
     } catch (error) {
       console.error('Error loading vehicles:', error);
+      setVehicles([]);
     } finally {
       setIsLoading(false);
     }
