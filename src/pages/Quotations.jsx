@@ -97,18 +97,21 @@ export default function Quotations() {
       // Use direct Supabase queries to avoid BaseEntity issues
       const { supabase } = await import('@/lib/railway-db');
       
-      const [quotationsResult, customersResult, usersResult] = await Promise.all([
-        supabase.from('quotation').select('*').order('created_at', { ascending: false }),
-        supabase.from('customer').select('*').order('created_at', { ascending: false }),
+      // Use Entity APIs and client-side sorting to avoid .order() issues
+      const [allQuotations, allCustomers, usersResult] = await Promise.all([
+        Quotation.list(),
+        Customer.list(),
         supabase.from('user_access').select('user_email, role, accessible_modules')
       ]);
-      
-      if (quotationsResult.error) throw quotationsResult.error;
-      if (customersResult.error) throw customersResult.error;
+
+      // Sort quotations by created_at descending
+      const quotationsData = allQuotations.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      // Sort customers by created_at descending
+      const customersData = allCustomers.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
       if (usersResult.error) throw usersResult.error;
-      
-      const quotationsData = quotationsResult.data || [];
-      const customersData = customersResult.data || [];
+
       const usersData = usersResult.data || [];
       
       console.log('📋 Loaded quotations:', quotationsData?.length || 0, 'records');

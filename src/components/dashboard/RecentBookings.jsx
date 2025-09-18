@@ -32,30 +32,20 @@ export default function RecentBookings({ isLoading }) {
       // Test direct Supabase queries like we did for customers
       const { supabase } = await import('@/lib/railway-db');
       
-      // Load bookings directly
+      // Load bookings using Entity API and sort client-side
       console.log('🔍 RecentBookings: Fetching bookings...');
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('booking')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(6);
-      
-      if (bookingsError) {
-        console.error('❌ RecentBookings: Bookings query failed:', bookingsError);
-        throw bookingsError;
-      }
+      const allBookings = await Booking.list();
+
+      // Sort by created_at descending and take first 6
+      const bookingsData = allBookings
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 6);
+
       console.log('✅ RecentBookings: Bookings loaded:', bookingsData?.length || 0);
       
-      // Load customers directly
+      // Load customers using Entity API
       console.log('🔍 RecentBookings: Fetching customers...');
-      const { data: customersData, error: customersError } = await supabase
-        .from('customer')
-        .select('*');
-      
-      if (customersError) {
-        console.error('❌ RecentBookings: Customers query failed:', customersError);
-        throw customersError;
-      }
+      const customersData = await Customer.list();
       console.log('✅ RecentBookings: Customers loaded:', customersData?.length || 0);
       
       // Create customer lookup

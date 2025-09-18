@@ -51,7 +51,8 @@ export default function DamageLogs() {
           } catch (incidentError3) {
             console.warn('Entity method failed, trying direct Supabase query:', incidentError3);
             const { supabase } = await import('@/lib/railway-db');
-            const { data } = await supabase.from('incident_log').select('*').order('created_at', { ascending: false });
+            const allIncidents = await IncidentLog.list();
+            const data = allIncidents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             incidentsData = data || [];
           }
         }
@@ -72,7 +73,8 @@ export default function DamageLogs() {
           } catch (vehicleError3) {
             console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
             const { supabase } = await import('@/lib/railway-db');
-            const { data } = await supabase.from('vehicle').select('*').order('created_at', { ascending: false });
+            const allVehicles = await Vehicle.list();
+            const data = allVehicles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             vehiclesData = data || [];
           }
         }

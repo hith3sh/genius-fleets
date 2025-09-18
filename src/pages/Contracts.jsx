@@ -67,7 +67,8 @@ export default function Contracts() {
           } catch (contractError3) {
             console.warn('Entity method failed, trying direct Supabase query:', contractError3);
             const { supabase } = await import('@/lib/railway-db');
-            const { data } = await supabase.from('vehicle_contract').select('*').order('created_at', { ascending: false });
+            const allContracts = await VehicleContract.list();
+            const data = allContracts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             contractsData = data || [];
           }
         }
@@ -88,7 +89,8 @@ export default function Contracts() {
           } catch (vehicleError3) {
             console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
             const { supabase } = await import('@/lib/railway-db');
-            const { data } = await supabase.from('vehicle').select('*').order('created_at', { ascending: false });
+            const allVehicles = await Vehicle.list();
+            const data = allVehicles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             vehiclesData = data || [];
           }
         }
