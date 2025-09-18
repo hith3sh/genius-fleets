@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "vite preview --port $PORT --host 0.0.0.0",
+    "start": "node server.js",
     "start:railway": "npm run build && npm run start",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -46,6 +46,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.5.2",
+    "express": "^4.21.2",
     "framer-motion": "^12.4.7",
     "input-otp": "^1.4.2",
     "leaflet": "^1.9.4",
