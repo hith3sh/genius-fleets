@@ -3,17 +3,25 @@ import Pages from "@/pages/index.jsx"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from './contexts/AuthContext'
 import ErrorBoundary from './components/errors/ErrorBoundary'
-import { UserProvider } from '@auth0/nextjs-auth0/client'
+import { Auth0Provider } from '@auth0/auth0-react'
 
 function App() {
   return (
     <ErrorBoundary>
-      <UserProvider>
+      <Auth0Provider
+        domain={import.meta.env.VITE_AUTH0_DOMAIN}
+        clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
+        authorizationParams={{
+          redirect_uri: window.location.origin,
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email'
+        }}
+      >
         <AuthProvider>
           <Pages />
           <Toaster />
         </AuthProvider>
-      </UserProvider>
+      </Auth0Provider>
     </ErrorBoundary>
   )
 }

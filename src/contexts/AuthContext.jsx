@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useAuth0 } from '@auth0/auth0-react';
 
 // Create auth context
 const AuthContext = createContext();
 
 // Auth provider component
 export function AuthProvider({ children }) {
-  const { user: auth0User, error: auth0Error, isLoading } = useUser();
+  const {
+    user: auth0User,
+    error: auth0Error,
+    isLoading,
+    loginWithRedirect,
+    logout
+  } = useAuth0();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,25 +39,49 @@ export function AuthProvider({ children }) {
     setError(auth0Error?.message || null);
   }, [auth0User, auth0Error, isLoading]);
 
-  // Auth functions now redirect to Auth0
+  // Auth functions using Auth0 React SDK
   const signIn = async (email, password) => {
-    window.location.href = '/api/auth/login';
-    return { success: true };
+    try {
+      await loginWithRedirect();
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
   const signUp = async (userData) => {
-    window.location.href = '/api/auth/login?screen_hint=signup';
-    return { success: true };
+    try {
+      await loginWithRedirect({
+        authorizationParams: {
+          screen_hint: 'signup'
+        }
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
   const signOut = async () => {
-    window.location.href = '/api/auth/logout';
-    return { success: true };
+    try {
+      logout({ logoutParams: { returnTo: window.location.origin } });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
   const resetPassword = async (email) => {
-    window.location.href = '/api/auth/login?screen_hint=forgot_password';
-    return { success: true };
+    try {
+      await loginWithRedirect({
+        authorizationParams: {
+          screen_hint: 'forgot_password'
+        }
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   };
 
   const hasAccess = async (module) => {
