@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../lib/railway-db';
 
 /**
  * Base entity class that provides common CRUD operations for all entities

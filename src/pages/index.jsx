@@ -50,7 +50,6 @@ import BusinessInfo from "./BusinessInfo";
 import Login from "../components/auth/Login";
 import Signup from "../components/auth/Signup";
 import ForgotPassword from "../components/auth/ForgotPassword";
-import EmailVerification from "../components/auth/EmailVerification";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 // Import error components
@@ -164,11 +163,11 @@ function PagesContent() {
     }
 
     // Check if the path is a public route
-    const isPublicRoute = ['/login', '/signup', '/forgot-password', '/verify-email', '/landing-page', '/rentcars'].includes(location.pathname.toLowerCase());
-    
+    const isPublicRoute = ['/login', '/signup', '/forgot-password', '/landing-page', '/rentcars'].includes(location.pathname.toLowerCase());
+
     // If user is authenticated and tries to access auth pages, redirect to dashboard
-    // Exception: allow access to /verify-email, /landing-page, and /rentcars even if authenticated
-    if (user && isPublicRoute && !['/landing-page', '/verify-email', '/rentcars'].includes(location.pathname.toLowerCase())) {
+    // Exception: allow access to /landing-page and /rentcars even if authenticated
+    if (user && isPublicRoute && !['/landing-page', '/rentcars'].includes(location.pathname.toLowerCase())) {
         return <Navigate to="/dashboard" replace />;
     }
     
@@ -178,7 +177,6 @@ function PagesContent() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/landing-page" element={<LandingPage />} />
             <Route path="/RentCars" element={<RentCars />} />
             

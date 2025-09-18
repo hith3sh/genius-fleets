@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/lib/railway-db';
 import { handleSupabaseError } from '../utils/errorHandler.js';
 
 // Generic CRUD operations for Supabase

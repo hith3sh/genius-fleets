@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FineLog } from '@/api/entities';
 import { Vehicle } from '@/api/entities';
-import { User } from '@/api/entities';
+import { UserAccess } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ export default function SalikFines() {
     const [finesData, vehiclesData, usersData] = await Promise.all([
         FineLog.list('-fine_date'),
         Vehicle.list(),
-        User.list()
+        UserAccess.list()
     ]);
     setFines(finesData);
     setVehicles(vehiclesData);

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { User } from "@/api/entities";
 import { UserAccess } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,11 +117,10 @@ export default function UserAccessRules() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [usersData, accessRulesData] = await Promise.all([
-        User.list(),
+      const [accessRulesData] = await Promise.all([
         UserAccess.list()
       ]);
-      setUsers(usersData.filter(u => u.role !== 'Management'));
+      setUsers(accessRulesData.filter(u => u.role !== 'Management'));
       setUserAccessRules(accessRulesData);
     } catch (error) {
       console.error("Error loading data:", error);

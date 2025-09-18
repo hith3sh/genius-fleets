@@ -30,7 +30,7 @@ export default function RecentBookings({ isLoading }) {
       console.log('🔍 RecentBookings: Loading bookings and customers...');
       
       // Test direct Supabase queries like we did for customers
-      const { supabase } = await import('@/lib/supabase');
+      const { supabase } = await import('@/lib/railway-db');
       
       // Load bookings directly
       console.log('🔍 RecentBookings: Fetching bookings...');

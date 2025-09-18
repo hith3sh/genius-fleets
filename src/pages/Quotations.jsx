@@ -95,7 +95,7 @@ export default function Quotations() {
       console.log('✅ Access granted - loading data...');
       
       // Use direct Supabase queries to avoid BaseEntity issues
-      const { supabase } = await import('@/lib/supabase');
+      const { supabase } = await import('@/lib/railway-db');
       
       const [quotationsResult, customersResult, usersResult] = await Promise.all([
         supabase.from('quotation').select('*').order('created_at', { ascending: false }),

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { User } from '@/api/entities';
 import { UserAccess } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +21,8 @@ export default function SettingsUserAccess() {
 
   useEffect(() => {
     async function loadUsers() {
-      const allUsers = await User.list();
+      // Load users from user_access table since User entity is removed
+      const allUsers = await UserAccess.list();
       setUsers(allUsers);
     }
     loadUsers();
@@ -32,14 +32,9 @@ export default function SettingsUserAccess() {
     async function loadUserAccess() {
       if (!selectedUser) return;
       setIsLoading(true);
-      const accessRecords = await UserAccess.filter({ user_email: selectedUser.email });
-      if (accessRecords.length > 0) {
-        setUserAccess(accessRecords[0]);
-        setAccessibleModules(new Set(accessRecords[0].accessible_modules));
-      } else {
-        setUserAccess(null);
-        setAccessibleModules(new Set());
-      }
+      // selectedUser is now a user_access record, so we can use it directly
+      setUserAccess(selectedUser);
+      setAccessibleModules(new Set(selectedUser.accessible_modules || []));
       setIsLoading(false);
     }
     loadUserAccess();
@@ -61,7 +56,7 @@ export default function SettingsUserAccess() {
     if (!selectedUser) return;
     setIsLoading(true);
     const payload = {
-      user_email: selectedUser.email,
+      user_email: selectedUser.user_email,
       accessible_modules: Array.from(accessibleModules),
     };
     if (userAccess) {
@@ -85,16 +80,16 @@ export default function SettingsUserAccess() {
         <CardContent className="space-y-6">
           <div>
             <label className="font-medium">Select Employee to Manage Access</label>
-            <Select onValueChange={email => setSelectedUser(users.find(u => u.email === email))}>
+            <Select onValueChange={email => setSelectedUser(users.find(u => u.user_email === email))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select an employee..." />
               </SelectTrigger>
               <SelectContent>
                 {users.map(user => (
-                  <SelectItem key={user.id} value={user.email}>
+                  <SelectItem key={user.id} value={user.user_email}>
                     <div className="flex items-center gap-2">
                       <UserIcon className="w-4 h-4" />
-                      {user.full_name} ({user.email})
+                      {user.user_email} ({user.role})
                     </div>
                   </SelectItem>
                 ))}
@@ -104,7 +99,7 @@ export default function SettingsUserAccess() {
 
           {selectedUser && (
             <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Manage Permissions for {selectedUser.full_name}</h3>
+              <h3 className="font-semibold text-lg">Manage Permissions for {selectedUser.user_email}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {navigationItems.map(item => (
                   <div key={item.name} className="p-4 border rounded-lg">

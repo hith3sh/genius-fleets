@@ -63,7 +63,7 @@ export default function StaffDocuments() {
           } catch (basicError) {
             console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
             // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('staff_document').select('*');
             if (result.error) throw result.error;
             documentsData = result.data || [];
@@ -79,7 +79,7 @@ export default function StaffDocuments() {
       } catch (employeeError) {
         console.warn('⚠️ Employee list failed, trying direct query:', employeeError.message);
         // Direct Supabase query as fallback
-        const { supabase } = await import('@/lib/supabase');
+        const { supabase } = await import('@/lib/railway-db');
         const result = await supabase.from('employee').select('*');
         if (result.error) throw result.error;
         employeesData = result.data || [];

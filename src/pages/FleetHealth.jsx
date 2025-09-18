@@ -45,7 +45,7 @@ export default function FleetHealth() {
           } catch (basicError) {
             console.log('Failed basic vehicle list, trying direct query...', basicError);
             try {
-              const { supabase } = await import('@/lib/supabase');
+              const { supabase } = await import('@/lib/railway-db');
               const result = await supabase.from('vehicle').select('*');
               if (result.error) throw result.error;
               vehiclesData = result.data || [];
@@ -69,7 +69,7 @@ export default function FleetHealth() {
         } catch (basicLogsError) {
           console.log('Failed basic maintenance logs list, trying direct query...', basicLogsError);
           try {
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('maintenance_log').select('*');
             if (result.error) throw result.error;
             logsData = result.data || [];

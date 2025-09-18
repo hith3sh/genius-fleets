@@ -32,7 +32,6 @@ import {
   LegalDocument as SupabaseLegalDocument,
   AIDocumentProcessing as SupabaseAIDocumentProcessing
 } from './supabaseEntities';
-import SupabaseUser from './entities/user';
 
 // Export Supabase entities
 export const UserAccess = SupabaseUserAccess;
@@ -66,6 +65,3 @@ export const Agreement = SupabaseAgreement;
 export const StaffDocument = SupabaseStaffDocument;
 export const LegalDocument = SupabaseLegalDocument;
 export const AIDocumentProcessing = SupabaseAIDocumentProcessing;
-
-// Export Supabase User authentication
-export const User = SupabaseUser;

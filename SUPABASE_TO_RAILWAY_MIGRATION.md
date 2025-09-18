@@ -575,7 +575,7 @@ curl https://your-app.railway.app/api/files/images/test.jpg
 - All file upload components - Update to use new file URLs
 
 ### Files to Remove
-- `src/lib/supabase.js` (if only used for auth/storage)
+- `src/lib/railway-db.js` (if only used for auth/storage)
 - Supabase-specific auth components
 
 ---

@@ -38,15 +38,13 @@ export default function Customers() {
   const loadCustomers = async () => {
     setIsLoading(true);
     try {
-      const { supabase } = await import('@/lib/supabase');
+      const { supabase } = await import('@/lib/railway-db');
       const { data, error } = await supabase
         .from('customer')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      
+        .select('*');
+
       if (error) throw error;
-      setCustomers(data);
+      setCustomers(data || []);
     } catch (error) {
       console.error('Error loading customers:', error);
       setErrorMessage(`Failed to load customers: ${error.message}. Please check your permissions.`);

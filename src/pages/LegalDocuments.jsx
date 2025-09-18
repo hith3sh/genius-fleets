@@ -82,7 +82,7 @@ export default function LegalDocuments() {
           } catch (basicError) {
             console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
             // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('legal_document').select('*');
             if (result.error) throw result.error;
             documentsData = result.data || [];

@@ -1,5 +1,5 @@
 import BaseEntity from './baseEntity';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../lib/railway-db';
 
 class Lead extends BaseEntity {
   constructor() {

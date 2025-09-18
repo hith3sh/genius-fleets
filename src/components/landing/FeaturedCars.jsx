@@ -30,7 +30,7 @@ export default function FeaturedCars() {
         console.log("=== Debugging Vehicle Loading ===");
         
         // Test direct Supabase connection with detailed logging
-        const { supabase } = await import('@/lib/supabase');
+        const { supabase } = await import('@/lib/railway-db');
         
         // Check authentication status
         const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CorporateClient } from '@/api/entities';
-import { User } from '@/api/entities';
+import { UserAccess } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +58,7 @@ export default function CorporateClients() {
         } catch (basicError) {
           console.log('⚠️ Basic list failed, trying direct Supabase query:', basicError.message);
           // Direct Supabase query as last resort
-          const { supabase } = await import('@/lib/supabase');
+          const { supabase } = await import('@/lib/railway-db');
           const result = await supabase.from('corporate_client').select('*');
 
           if (result.error) throw result.error;
@@ -67,7 +67,7 @@ export default function CorporateClients() {
         }
       }
 
-      const usersData = await User.list();
+      const usersData = await UserAccess.list();
 
       console.log('🏢 Final corporate clients count:', clientsData?.length || 0); // Debug log
       console.log('👨‍💼 Loaded users:', usersData?.length || 0, 'records'); // Debug log
@@ -137,7 +137,7 @@ export default function CorporateClients() {
 
   const getAccountManagerName = (managerId) => {
     const manager = accountManagers.find(m => m.id === managerId);
-    return manager ? (manager.full_name || manager.email) : 'Unknown Manager';
+    return manager ? manager.user_email : 'Unknown Manager';
   };
 
   const handleNewClient = () => {

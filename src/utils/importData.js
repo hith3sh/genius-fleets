@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js';
+import { supabase } from '@/lib/railway-db';
 
 // Simple data import utility for development
 export async function importSampleVehicles() {

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Customer } from '@/api/entities';
 import { Lead } from '@/api/entities';
-import { User } from '@/api/entities';
+import { UserAccess } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,7 +82,7 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
               console.log('⚠️ Basic list failed, trying direct Supabase query:', basicError.message);
 
               // Direct Supabase query as last resort
-              const { supabase } = await import('@/lib/supabase');
+              const { supabase } = await import('@/lib/railway-db');
               const result = await supabase.from('customer').select('*');
 
               if (result.error) throw result.error;
@@ -121,8 +121,8 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
 
       const loadUsersData = async () => {
         try {
-          const data = await User.list();
-          const reps = data?.filter(user => 
+          const data = await UserAccess.list();
+          const reps = data?.filter(user =>
             user.role === 'Sales Executive' || user.role === 'Management'
           ) || [];
           console.log('👨‍💼 Sales reps loaded:', reps?.length || 0, 'records'); // Debug log
@@ -197,7 +197,7 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
           console.log('✅ Customers reloaded without ordering:', customersData?.length || 0, 'records');
         } catch (basicError) {
           // Direct query fallback
-          const { supabase } = await import('@/lib/supabase');
+          const { supabase } = await import('@/lib/railway-db');
           const result = await supabase.from('customer').select('*');
 
           if (result.error) throw result.error;
@@ -435,7 +435,7 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
                 <SelectItem value={null}>No Sales Rep</SelectItem>
                 {salesReps.map(rep => (
                   <SelectItem key={rep.id} value={rep.id}>
-                    {rep.full_name || rep.email}
+                    {rep.user_email}
                   </SelectItem>
                 ))}
               </SelectContent>

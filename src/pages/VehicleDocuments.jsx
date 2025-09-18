@@ -73,8 +73,8 @@ export default function VehicleDocuments() {
           console.log('✅ Documents loaded without ordering:', documentsData?.length || 0);
         } catch (basicError) {
           console.warn('⚠️ Basic documents list failed, trying direct query:', basicError.message);
-          // Direct Supabase query as fallback
-          const { supabase } = await import('@/lib/supabase');
+          // Direct Railway query as fallback
+          const { supabase } = await import('@/lib/railway-db');
           const result = await supabase.from('vehicle_document').select('*');
           if (result.error) throw result.error;
           documentsData = result.data || [];
@@ -87,8 +87,8 @@ export default function VehicleDocuments() {
         console.log('✅ Vehicles loaded:', vehiclesData?.length || 0);
       } catch (vehicleError) {
         console.warn('⚠️ Vehicle list failed, trying direct query:', vehicleError.message);
-        // Direct Supabase query as fallback
-        const { supabase } = await import('@/lib/supabase');
+        // Direct Railway query as fallback
+        const { supabase } = await import('@/lib/railway-db');
         const result = await supabase.from('vehicle').select('*');
         if (result.error) throw result.error;
         vehiclesData = result.data || [];

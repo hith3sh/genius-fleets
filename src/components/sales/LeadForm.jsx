@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lead } from '@/api/entities';
-import { User } from '@/api/entities';
+import { Lead, UserAccess } from '@/api/entities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,8 +26,8 @@ export default function LeadForm({ lead, onSubmit, onCancel }) {
 
   const loadSalesReps = async () => {
     try {
-      const users = await User.list();
-      const reps = users.filter(user => 
+      const users = await UserAccess.list();
+      const reps = users.filter(user =>
         user.role === 'Sales Executive' || user.role === 'Management'
       );
       setSalesReps(reps);
@@ -134,7 +133,7 @@ export default function LeadForm({ lead, onSubmit, onCancel }) {
                   <SelectItem value={null}>Unassigned</SelectItem>
                   {salesReps.map(rep => (
                     <SelectItem key={rep.id} value={rep.id}>
-                      {rep.full_name || rep.email}
+                      {rep.user_email}
                     </SelectItem>
                   ))}
                 </SelectContent>

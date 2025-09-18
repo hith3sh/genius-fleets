@@ -67,7 +67,7 @@ export default function VehicleImageLibrary() {
         } catch (basicError) {
           console.log('Basic list failed, trying direct query:', basicError.message);
           // Direct Supabase query as last resort
-          const { supabase } = await import('@/lib/supabase');
+          const { supabase } = await import('@/lib/railway-db');
           const result = await supabase.from('car_image').select('*');
           
           if (result.error) throw result.error;

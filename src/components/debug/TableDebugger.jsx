@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Database, CheckCircle, AlertCircle } from "lucide-react";
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/railway-db';
 
 export default function TableDebugger() {
   const [results, setResults] = useState(null);

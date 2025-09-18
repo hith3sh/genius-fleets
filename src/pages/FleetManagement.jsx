@@ -119,8 +119,8 @@ export default function FleetManagement() {
             console.log('✅ Vehicles loaded without ordering:', vehiclesData?.length || 0);
           } catch (basicError) {
             console.warn('⚠️ Basic vehicle list failed, trying direct query:', basicError.message);
-            // Direct Supabase query as last resort
-            const { supabase } = await import('@/lib/supabase');
+            // Direct Railway query as last resort
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('vehicle').select('*');
             if (result.error) throw result.error;
             vehiclesData = result.data || [];

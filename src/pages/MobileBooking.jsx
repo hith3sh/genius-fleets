@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Vehicle } from '@/api/entities';
 import { Booking } from '@/api/entities';
 import { Customer } from '@/api/entities';
-import { User } from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

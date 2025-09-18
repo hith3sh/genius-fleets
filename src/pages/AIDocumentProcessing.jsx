@@ -209,7 +209,7 @@ export default function AIDocumentProcessingPage() {
           } catch (basicError) {
             console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
             // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('ai_document_processing').select('*');
             if (result.error) throw result.error;
             documentsData = result.data || [];

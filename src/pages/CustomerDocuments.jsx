@@ -62,7 +62,7 @@ export default function CustomerDocuments() {
           } catch (basicError) {
             console.warn('⚠️ Basic document list failed, trying direct query:', basicError.message);
             // Direct Supabase query as fallback
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const result = await supabase.from('customer_document').select('*');
             if (result.error) throw result.error;
             documentsData = result.data || [];
@@ -78,7 +78,7 @@ export default function CustomerDocuments() {
       } catch (customerError) {
         console.warn('⚠️ Customer list failed, trying direct query:', customerError.message);
         // Direct Supabase query as fallback
-        const { supabase } = await import('@/lib/supabase');
+        const { supabase } = await import('@/lib/railway-db');
         const result = await supabase.from('customer').select('*');
         if (result.error) throw result.error;
         customersData = result.data || [];

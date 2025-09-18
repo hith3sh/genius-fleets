@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User } from '@/api/entities';
+import { UserAccess } from '@/api/entities';
 import { Plus, Trash2 } from 'lucide-react';
 
 export default function CorporateClientForm({ client, onSubmit, onCancel }) {
@@ -26,8 +26,8 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
 
   const loadSalesReps = async () => {
     try {
-      const users = await User.list();
-      const reps = users.filter(user => 
+      const users = await UserAccess.list();
+      const reps = users.filter(user =>
         user.role === 'Sales Executive' || user.role === 'Management'
       );
       setSalesReps(reps);
@@ -129,7 +129,7 @@ export default function CorporateClientForm({ client, onSubmit, onCancel }) {
                 <SelectContent>
                   {salesReps.map(rep => (
                     <SelectItem key={rep.id} value={rep.id}>
-                      {rep.full_name || rep.email}
+                      {rep.user_email}
                     </SelectItem>
                   ))}
                 </SelectContent>

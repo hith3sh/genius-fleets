@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import IncidentLog from '@/api/entities/incidentLog';
 import Vehicle from '@/api/entities/vehicle';
-import User from '@/api/entities/user';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ const statusColors = {
 export default function DamageLogs() {
   const [incidents, setIncidents] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [users, setUsers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingIncident, setEditingIncident] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +50,7 @@ export default function DamageLogs() {
             incidentsData = await IncidentLog.list();
           } catch (incidentError3) {
             console.warn('Entity method failed, trying direct Supabase query:', incidentError3);
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const { data } = await supabase.from('incident_log').select('*').order('created_at', { ascending: false });
             incidentsData = data || [];
           }
@@ -73,39 +71,17 @@ export default function DamageLogs() {
             vehiclesData = await Vehicle.list();
           } catch (vehicleError3) {
             console.warn('Entity method failed, trying direct Supabase query:', vehicleError3);
-            const { supabase } = await import('@/lib/supabase');
+            const { supabase } = await import('@/lib/railway-db');
             const { data } = await supabase.from('vehicle').select('*').order('created_at', { ascending: false });
             vehiclesData = data || [];
           }
         }
       }
 
-      // Multi-level fallback loading for users
-      let usersData = [];
-      try {
-        usersData = await User.list('-updated_date');
-      } catch (userError) {
-        console.warn('Primary user loading failed, trying alternative ordering:', userError);
-        try {
-          usersData = await User.list('-created_at');
-        } catch (userError2) {
-          console.warn('Alternative user ordering failed, trying without ordering:', userError2);
-          try {
-            usersData = await User.list();
-          } catch (userError3) {
-            console.warn('Entity method failed, trying direct Supabase query:', userError3);
-            const { supabase } = await import('@/lib/supabase');
-            const { data } = await supabase.from('user_access').select('*').order('created_at', { ascending: false });
-            usersData = data || [];
-          }
-        }
-      }
-
       setIncidents(incidentsData);
       setVehicles(vehiclesData);
-      setUsers(usersData);
 
-      console.log(`Loaded ${incidentsData.length} incidents, ${vehiclesData.length} vehicles, ${usersData.length} users`);
+      console.log(`Loaded ${incidentsData.length} incidents, ${vehiclesData.length} vehicles`);
     } catch (error) {
       console.error('Error fetching data:', error);
       
@@ -123,7 +99,6 @@ export default function DamageLogs() {
   };
   
   const vehicleMap = vehicles.reduce((acc, v) => ({ ...acc, [v.id]: v }), {});
-  const userMap = users.reduce((acc, u) => ({ ...acc, [u.id]: u }), {});
 
   const handleSubmit = async (formData, photos) => {
     try {
@@ -241,7 +216,6 @@ export default function DamageLogs() {
                 <TableBody>
                   {incidents.map(incident => {
                     const vehicle = vehicleMap[incident.vehicle_id];
-                    const user = userMap[incident.responsible_user_id];
                     
                     return (
                       <TableRow key={incident.id}>
@@ -320,12 +294,11 @@ export default function DamageLogs() {
               {editingIncident ? 'Edit Incident Report' : 'New Incident Report'}
             </DialogTitle>
           </DialogHeader>
-          <IncidentForm 
-            vehicles={vehicles} 
-            users={users} 
+          <IncidentForm
+            vehicles={vehicles}
             incident={editingIncident}
-            onSubmit={handleSubmit} 
-            onCancel={handleCancelEdit} 
+            onSubmit={handleSubmit}
+            onCancel={handleCancelEdit}
           />
         </DialogContent>
       </Dialog>

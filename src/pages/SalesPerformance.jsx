@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Lead } from '@/api/entities';
 import { Quotation } from '@/api/entities';
 import { Customer } from '@/api/entities';
-import { User } from '@/api/entities';
+import { UserAccess } from '@/api/entities';
 import { TrendingUp, Target, FileText, UserCheck, Download } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#A44D8C'];
@@ -67,7 +67,7 @@ export default function SalesPerformance() {
       Lead.list(),
       Quotation.list(),
       Customer.list(),
-      User.list()
+      UserAccess.list()
     ]);
     setLeads(leadsData);
     setQuotations(quotationsData);
