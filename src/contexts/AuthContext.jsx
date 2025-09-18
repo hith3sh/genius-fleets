@@ -54,19 +54,40 @@ export function AuthProvider({ children }) {
           console.log('🔍 All users query result:', allUsers, 'Error:', queryError);
 
           // Find the specific user manually
-          const existingUser = allUsers?.find(user => user.user_email === auth0User.email);
+          let existingUser = allUsers?.find(user => user.user_email === auth0User.email);
 
           if (!existingUser) {
             // Create new user_access record with default permissions
-            await supabase.from('user_access').insert({
+            const newUserData = {
               user_email: auth0User.email,
               role: 'Staff',
               accessible_modules: ['Fleet Health', 'Bookings']
-            });
+            };
+
+            await supabase.from('user_access').insert(newUserData);
             console.log('Created user_access record for new user:', auth0User.email);
+
+            // Use the newly created user data
+            existingUser = newUserData;
           }
+
+          console.log('🔍 Final user_access record:', existingUser);
+
         } catch (error) {
           console.warn('Could not ensure user_access record:', error);
+        }
+
+        // Re-fetch user_access to get the latest role and permissions
+        let userAccessData = null;
+        try {
+          const { data: refreshedUsers } = await supabase
+            .from('user_access')
+            .select('*');
+
+          userAccessData = refreshedUsers?.find(user => user.user_email === auth0User.email);
+          console.log('🔍 Using user_access data:', userAccessData);
+        } catch (error) {
+          console.warn('Could not fetch user_access record:', error);
         }
 
         const transformedUser = {
@@ -74,8 +95,9 @@ export function AuthProvider({ children }) {
           email: auth0User.email,
           name: auth0User.name,
           picture: auth0User.picture,
-          role: auth0User['https://genius-fleets.com/roles']?.[0] || 'Staff',
-          accessible_modules: auth0User['https://genius-fleets.com/modules'] || ['Fleet Health', 'Bookings'],
+          // Use database role and modules, fallback to Auth0 claims
+          role: userAccessData?.role || auth0User['https://genius-fleets.com/roles']?.[0] || 'Staff',
+          accessible_modules: userAccessData?.accessible_modules || auth0User['https://genius-fleets.com/modules'] || ['Fleet Health', 'Bookings'],
           email_verified: auth0User.email_verified,
           created_at: auth0User.created_at,
           updated_at: auth0User.updated_at,
