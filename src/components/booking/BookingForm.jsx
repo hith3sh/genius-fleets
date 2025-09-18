@@ -472,7 +472,7 @@ Genius Fleets Team
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <span className="font-medium text-green-800">
-                  Total Amount: AED {formData.total_amount.toFixed(2)}
+                  Total Amount: AED {Number(formData.total_amount || 0).toFixed(2)}
                 </span>
               </div>
             </div>

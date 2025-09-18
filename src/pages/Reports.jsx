@@ -362,7 +362,7 @@ export default function Reports() {
                           <td className="border border-gray-300 p-2">{booking.customer_id}</td>
                           <td className="border border-gray-300 p-2">{booking.vehicle_id}</td>
                           <td className="border border-gray-300 p-2">{new Date(booking.end_date).toLocaleDateString()}</td>
-                          <td className="border border-gray-300 p-2 text-right">AED {(booking.total_amount || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 p-2 text-right">AED {Number(booking.total_amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -412,7 +412,7 @@ export default function Reports() {
                           <td className="border border-gray-300 p-2">{new Date(booking.booking_date).toLocaleDateString()}</td>
                           <td className="border border-gray-300 p-2">{booking.customer_id}</td>
                           <td className="border border-gray-300 p-2">{booking.status}</td>
-                          <td className="border border-gray-300 p-2 text-right">AED {(booking.total_amount || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 p-2 text-right">AED {Number(booking.total_amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -475,7 +475,7 @@ export default function Reports() {
                           <td className="border border-gray-300 p-2">{expense.category}</td>
                           <td className="border border-gray-300 p-2">{expense.description}</td>
                           <td className="border border-gray-300 p-2">{expense.paid_to}</td>
-                          <td className="border border-gray-300 p-2 text-right">AED {(expense.amount || 0).toFixed(2)}</td>
+                          <td className="border border-gray-300 p-2 text-right">AED {Number(expense.amount || 0).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>

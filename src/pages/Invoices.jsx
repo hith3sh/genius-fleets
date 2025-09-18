@@ -376,7 +376,7 @@ export default function Invoices() {
                 </td>
                 <td className="p-2 text-center">{`${days} days`}</td>
                 <td className="p-2 text-right">{dailyRate.toFixed(2)}</td>
-                <td className="p-2 text-right">{(invoice.amount || 0).toFixed(2)}</td>
+                <td className="p-2 text-right">{Number(invoice.amount || 0).toFixed(2)}</td>
               </tr>
               <tr className="border-b">
                 <td className="p-2">{`VAT (${invoice.tax || 5}%)`}</td>
@@ -400,7 +400,7 @@ export default function Invoices() {
             <p className="font-bold text-gray-800 mt-8">GENIUS FLEETS</p>
           </div>
           <div className="text-right">
-            <p className="text-gray-500">Subtotal: <span className="font-semibold text-gray-700 w-24 inline-block">{(invoice.amount || 0).toFixed(2)}</span></p>
+            <p className="text-gray-500">Subtotal: <span className="font-semibold text-gray-700 w-24 inline-block">{Number(invoice.amount || 0).toFixed(2)}</span></p>
             <p className="text-gray-500">VAT ({invoice.tax || 5}%): <span className="font-semibold text-gray-700 w-24 inline-block">{vat.toFixed(2)}</span></p>
             <p className="text-lg font-bold text-gray-800 mt-2">Total: <span className="w-24 inline-block">AED {total.toFixed(2)}</span></p>
             <p className="text-sm font-semibold text-gray-700 mt-4">Amount in Words:</p>

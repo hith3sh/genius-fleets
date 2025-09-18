@@ -568,7 +568,7 @@ export default function Bookings() {
                                 </TableCell>
                                 <TableCell>
                                   <div className="font-semibold text-gray-900">
-                                    AED {(booking.total_amount || 0).toFixed(2)}
+                                    AED {Number(booking.total_amount || 0).toFixed(2)}
                                   </div>
                                 </TableCell>
                                 <TableCell>
