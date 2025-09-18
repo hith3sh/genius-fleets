@@ -33,6 +33,17 @@ export function AuthProvider({ children }) {
 
         // Ensure user_access record exists (for new Auth0 users)
         try {
+          // DEBUG: Check what supabase client looks like
+          console.log('🔍 DEBUG: Supabase client:', supabase);
+          console.log('🔍 DEBUG: Supabase methods:', Object.keys(supabase));
+          console.log('🔍 DEBUG: From method exists?', typeof supabase.from);
+          console.log('🔍 DEBUG: Environment check:', {
+            NODE_ENV: process.env.NODE_ENV,
+            // Don't log actual URLs for security
+            hasRailwayURL: !!process.env.VITE_RAILWAY_DATABASE_URL,
+            hasSupabaseURL: !!process.env.VITE_SUPABASE_URL
+          });
+
           const { data: existingUser } = await supabase
             .from('user_access')
             .select('id')
