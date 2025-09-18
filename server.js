@@ -5,6 +5,9 @@ import fs from 'fs';
 import { Client } from 'pg';
 import 'dotenv/config';
 
+// Import data transformer
+import { smartTransform } from './src/lib/dataTransformer.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -196,7 +199,8 @@ app.get('/api/db/:table', async (req, res) => {
     }
 
     const result = await dbClient.query(query, params);
-    res.json({ data: result.rows, error: null });
+    const transformedData = smartTransform(result.rows);
+    res.json({ data: transformedData, error: null });
   } catch (error) {
     console.error('Database select error:', error);
     res.status(500).json({ data: null, error: error.message });
@@ -219,7 +223,8 @@ app.post('/api/db/:table', async (req, res) => {
     `;
 
     const result = await dbClient.query(query, values);
-    res.json({ data: result.rows[0], error: null });
+    const transformedData = smartTransform(result.rows[0]);
+    res.json({ data: transformedData, error: null });
   } catch (error) {
     console.error('Database insert error:', error);
     res.status(500).json({ data: null, error: error.message });
@@ -243,7 +248,8 @@ app.patch('/api/db/:table/:id', async (req, res) => {
     `;
 
     const result = await dbClient.query(query, [...values, id]);
-    res.json({ data: result.rows[0], error: null });
+    const transformedData = smartTransform(result.rows[0]);
+    res.json({ data: transformedData, error: null });
   } catch (error) {
     console.error('Database update error:', error);
     res.status(500).json({ data: null, error: error.message });

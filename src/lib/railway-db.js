@@ -1,6 +1,8 @@
 // Railway PostgreSQL client that proxies through Express server
+import { smartTransform } from './dataTransformer.js';
+
 console.log('🔧 Railway Database Configuration:');
-console.log('Using server-side database proxy for Railway PostgreSQL');
+console.log('Using server-side database proxy for Railway PostgreSQL with data transformation');
 
 // Create Supabase-compatible client that routes through our Express API
 const createRailwayClient = () => {
@@ -80,7 +82,8 @@ const createRailwayClient = () => {
         this.select = async (columns = '*') => {
           const result = await originalSelect(columns);
           if (result.data && Array.isArray(result.data)) {
-            return { ...result, data: result.data[0] || null };
+            const transformedFirst = result.data[0] ? smartTransform(result.data[0]) : null;
+            return { ...result, data: transformedFirst };
           }
           return result;
         };
