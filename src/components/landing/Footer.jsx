@@ -1,7 +1,7 @@
 import React from 'react';
 import { Facebook, Twitter, Instagram } from 'lucide-react';
 
-const logoUrl = "/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png";
+const logoUrl = "/4492b025e_AlJisrCarRentals.png";
 
 export default function Footer() {
   return (

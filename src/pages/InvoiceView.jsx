@@ -182,7 +182,7 @@ export default function InvoiceView() {
           <div className="p-4 text-center">
             <div className="flex justify-center mb-2">
               <img 
-                src="/api/files/base44-prod/public/2b4d1bbdc_AlJisrCarRentals.png" 
+                src="/2b4d1bbdc_AlJisrCarRentals.png" 
                 alt="Al Jisr Car Rentals Logo" 
                 className="h-16 w-auto object-contain" 
               />

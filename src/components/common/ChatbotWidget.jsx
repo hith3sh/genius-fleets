@@ -167,8 +167,8 @@ export default function ChatbotWidget() {
 
   const languageOrder = ['Arabic', 'English', 'Russian', 'Hindi'];
   
-  const iconUrl = "/api/files/base44-prod/public/b357bafe5_IAMONLINEstatic.jpg";
-  const logoUrl = "/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png";
+  const iconUrl = "/b357bafe5_IAMONLINEstatic.jpg";
+  const logoUrl = "/4492b025e_AlJisrCarRentals.png";
 
 
   useEffect(() => {

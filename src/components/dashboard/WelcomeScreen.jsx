@@ -6,7 +6,7 @@ export default function WelcomeScreen({ user }) {
   return (
     <div className="flex flex-col items-center justify-center h-full p-10 text-center bg-gradient-to-br from-violet-50 via-white to-blue-50">
       <img
-        src="/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png"
+        src="/4492b025e_AlJisrCarRentals.png"
         alt="Al Jisr Car Rentals Logo"
         className="h-24 object-contain mb-6"
       />

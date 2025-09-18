@@ -35,7 +35,7 @@ export default function ErrorPage({
     window.location.reload();
   };
 
-  const logoUrl = "/api/files/base44-prod/public/4492b025e_AlJisrCarRentals.png";
+  const logoUrl = "/4492b025e_AlJisrCarRentals.png";
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
