@@ -44,12 +44,17 @@ export function AuthProvider({ children }) {
             hasSupabaseURL: !!process.env.VITE_SUPABASE_URL
           });
 
-          // Fixed method chaining - eq() must come before select()
-          const { data: existingUser } = await supabase
+          // Simplified approach - get all user_access records and filter manually
+          console.log('🔍 Checking for existing user_access record for:', auth0User.email);
+
+          const { data: allUsers, error: queryError } = await supabase
             .from('user_access')
-            .eq('user_email', auth0User.email)
-            .select('id')
-            .single();
+            .select('*');
+
+          console.log('🔍 All users query result:', allUsers, 'Error:', queryError);
+
+          // Find the specific user manually
+          const existingUser = allUsers?.find(user => user.user_email === auth0User.email);
 
           if (!existingUser) {
             // Create new user_access record with default permissions
