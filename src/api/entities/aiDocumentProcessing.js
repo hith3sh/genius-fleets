@@ -325,23 +325,24 @@ class AIDocumentProcessing extends BaseEntity {
       // Delete from database first
       await this.delete(id);
 
-      // Try to delete file from storage if it exists
-      if (document.file_url && document.file_url.includes('supabase')) {
+      // Try to delete file from Railway volume storage if it exists
+      if (document.file_url) {
         try {
-          // Extract file path from URL
-          const urlParts = document.file_url.split('/');
-          const fileName = urlParts[urlParts.length - 1];
-          const bucket = 'VehicleImages'; // Updated bucket name
+          // Extract file path from URL for Railway volume deletion
+          // For Railway volumes, file_url should be like "/api/files/documents/ai-docs/filename.pdf"
+          const urlPath = document.file_url.replace('/api/files/', '');
+          const storageBasePath = process.env.STORAGE_PATH || '/app/storage';
+          const fs = await import('fs');
+          const path = await import('path');
+          const filePath = path.join(storageBasePath, urlPath);
 
-          const { error: storageError } = await supabase.storage
-            .from(bucket)
-            .remove([fileName]);
-
-          if (storageError) {
-            console.warn('Could not delete file from storage:', storageError.message);
+          // Delete from local storage
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
           }
         } catch (storageError) {
-          console.warn('File deletion from storage failed:', storageError);
+          console.warn('Could not delete file from storage:', storageError);
+          // Continue with database deletion even if storage deletion fails
         }
       }
     } catch (error) {

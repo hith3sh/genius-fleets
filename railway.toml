@@ -1,0 +1,17 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+
+# Volume mounts for file storage
+[[mounts]]
+source = "fleet-storage"
+target = "/app/storage"
+
+# Environment variables
+[env]
+NODE_ENV = "production"
+STORAGE_PATH = "/app/storage"

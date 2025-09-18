@@ -199,15 +199,17 @@ class VehicleDocument extends BaseEntity {
       if (document && document.file_url) {
         // Extract file path from URL for deletion
         try {
-          const url = new URL(document.file_url);
-          const pathParts = url.pathname.split('/');
-          const fileName = pathParts[pathParts.length - 1];
-          const bucket = 'VehicleImages'; // Default bucket
+          // For Railway volumes, file_url should be like "/api/files/documents/vehicle-docs/filename.pdf"
+          const urlPath = document.file_url.replace('/api/files/', '');
+          const storageBasePath = process.env.STORAGE_PATH || '/app/storage';
+          const fs = await import('fs');
+          const path = await import('path');
+          const filePath = path.join(storageBasePath, urlPath);
 
-          // Delete from storage
-          await supabase.storage
-            .from(bucket)
-            .remove([`uploads/${fileName}`]);
+          // Delete from local storage
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
         } catch (storageError) {
           console.warn('Could not delete file from storage:', storageError);
           // Continue with database deletion even if storage deletion fails

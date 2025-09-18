@@ -15,48 +15,54 @@ export const Core = {
     throw new Error('Integration not yet migrated to Supabase');
   },
   
-  UploadFile: async ({ file, bucket = 'VehicleImages', folder = 'uploads' }) => {
+  UploadFile: async ({ file, bucket = 'images', folder = 'uploads' }) => {
     try {
-      const { supabase } = await import('@/lib/supabase');
-  
+      const fs = await import('fs');
+      const path = await import('path');
+
       // Generate unique filename
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 15);
       const fileExtension = file.name.split('.').pop();
       const fileName = `${folder}/${timestamp}_${randomString}.${fileExtension}`;
 
-      console.log(`Uploading file to Supabase Storage: ${fileName}`);
+      // Create storage directory structure
+      const storageBasePath = process.env.STORAGE_PATH || '/app/storage';
+      const bucketPath = path.join(storageBasePath, bucket);
+      const filePath = path.join(bucketPath, fileName);
 
-      // Upload file to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        console.error('Supabase storage upload error:', error);
-        throw new Error(`File upload failed: ${error.message}. Please ensure you have proper permissions and the storage bucket exists.`);
+      // Ensure directory exists
+      if (!fs.existsSync(bucketPath)) {
+        fs.mkdirSync(bucketPath, { recursive: true });
       }
 
-      console.log('File uploaded successfully to storage:', data);
+      // Convert file to buffer
+      let fileBuffer;
+      if (file instanceof File) {
+        fileBuffer = Buffer.from(await file.arrayBuffer());
+      } else if (file.buffer) {
+        fileBuffer = file.buffer;
+      } else {
+        fileBuffer = Buffer.from(file);
+      }
 
-      // Get public URL for the uploaded file
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(fileName);
+      // Write file to storage
+      fs.writeFileSync(filePath, fileBuffer);
+
+      // Generate public URL
+      const publicUrl = `/api/files/${bucket}/${fileName}`;
 
       return {
-        file_url: urlData.publicUrl,
+        file_url: publicUrl,
         file_name: fileName,
-        file_size: file.size,
+        file_size: fileBuffer.length,
         file_type: file.type,
-        bucket: bucket
+        bucket: bucket,
+        path: filePath
       };
     } catch (error) {
-      console.error('UploadFile error:', error);
-      throw error;
+      console.error('Railway volume upload error:', error);
+      throw new Error(`File upload failed: ${error.message}`);
     }
   },
   
