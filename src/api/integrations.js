@@ -14,48 +14,32 @@ export const Core = {
   
   UploadFile: async ({ file, bucket = 'images', folder = 'uploads' }) => {
     try {
-      const fs = await import('fs');
-      const path = await import('path');
+      // Use the server's upload endpoint
+      const formData = new FormData();
+      formData.append('file', file);
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2, 15);
-      const fileExtension = file.name.split('.').pop();
-      const fileName = `${folder}/${timestamp}_${randomString}.${fileExtension}`;
+      const response = await fetch(`/api/storage/${bucket}/upload`, {
+        method: 'POST',
+        body: formData
+      });
 
-      // Create storage directory structure
-      const storageBasePath = process.env.STORAGE_PATH || '/app/storage';
-      const bucketPath = path.join(storageBasePath, bucket);
-      const filePath = path.join(bucketPath, fileName);
-
-      // Ensure directory exists
-      if (!fs.existsSync(bucketPath)) {
-        fs.mkdirSync(bucketPath, { recursive: true });
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
       }
 
-      // Convert file to buffer
-      let fileBuffer;
-      if (file instanceof File) {
-        fileBuffer = Buffer.from(await file.arrayBuffer());
-      } else if (file.buffer) {
-        fileBuffer = file.buffer;
-      } else {
-        fileBuffer = Buffer.from(file);
+      const result = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
       }
-
-      // Write file to storage
-      fs.writeFileSync(filePath, fileBuffer);
-
-      // Generate public URL
-      const publicUrl = `/api/files/${bucket}/${fileName}`;
 
       return {
-        file_url: publicUrl,
-        file_name: fileName,
-        file_size: fileBuffer.length,
-        file_type: file.type,
-        bucket: bucket,
-        path: filePath
+        file_url: result.data.public_url,
+        file_name: result.data.name,
+        file_size: result.data.size,
+        file_type: result.data.mimetype,
+        bucket: result.data.bucket,
+        full_url: result.data.full_url
       };
     } catch (error) {
       console.error('Railway volume upload error:', error);
