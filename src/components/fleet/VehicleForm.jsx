@@ -325,7 +325,15 @@ export default function VehicleForm({ vehicle, onSave, onCancel, onOpenImageSele
       await onSave(submissionData);
     } catch (error) {
       console.error('Error saving vehicle:', error);
-      alert(`Error saving vehicle: ${error.message}`);
+
+      // Handle specific database constraint errors
+      if (error.message.includes('duplicate key value violates unique constraint "vehicle_license_plate_key"')) {
+        alert('Error: A vehicle with this license plate already exists. Please use a different license plate number.');
+      } else if (error.message.includes('duplicate key value') && error.message.includes('license_plate')) {
+        alert('Error: This license plate is already registered. Please check the license plate and try again.');
+      } else {
+        alert(`Error saving vehicle: ${error.message}`);
+      }
     }
 
     setIsSaving(false);

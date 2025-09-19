@@ -7,27 +7,53 @@ class SupabaseEntity {
     this.tableName = tableName
   }
 
-  async list(filters = {}) {
-    let query = supabase.from(this.tableName).select('*')
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      query = query.eq(key, value)
-    })
+  async list(filtersOrOrder = {}) {
+    try {
+      // Handle ordering parameter (string starting with - or just column name)
+      if (typeof filtersOrOrder === 'string') {
+        console.log(`Loading ${this.tableName} with ordering: ${filtersOrOrder}`)
+        // For now, ignore ordering and just do simple select
+        // TODO: Add proper ordering support to the API
+        const { data, error } = await supabase.from(this.tableName).select('*')
+        if (error) throw error
+        return data
+      }
 
-    const { data, error } = await query
-    if (error) throw error
-    return data
+      // Handle filters object
+      const filters = filtersOrOrder || {}
+
+      // If no filters, do a simple select
+      if (Object.keys(filters).length === 0) {
+        const { data, error } = await supabase.from(this.tableName).select('*')
+        if (error) throw error
+        return data
+      }
+
+      // If there are filters, use the API directly to avoid method chaining issues
+      const filterQuery = encodeURIComponent(JSON.stringify(filters))
+      const response = await fetch(`/api/db/${this.tableName}?select=*&filter=${filterQuery}`)
+      const result = await response.json()
+
+      if (result.error) throw new Error(result.error)
+      return result.data || []
+    } catch (error) {
+      console.error(`Error in ${this.tableName} list:`, error)
+      throw error
+    }
   }
 
   async get(id) {
-    const { data, error } = await supabase
-      .from(this.tableName)
-      .select('*')
-      .eq('id', id)
-      .single()
-    
-    if (error) throw error
-    return data
+    try {
+      // Use direct API call to avoid method chaining issues
+      const response = await fetch(`/api/db/${this.tableName}/${id}?select=*`)
+      const result = await response.json()
+
+      if (result.error) throw new Error(result.error)
+      return result.data
+    } catch (error) {
+      console.error(`Error in ${this.tableName} get:`, error)
+      throw error
+    }
   }
 
   async create(item) {

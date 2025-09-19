@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || (process.env.NODE_ENV === 'development' ? 'localhost' : '0.0.0.0');
 
 // Middleware
 app.use(express.json());
@@ -283,15 +284,63 @@ app.post('/api/db/:table', async (req, res) => {
     const { table } = req.params;
     const data = req.body;
 
+    console.log(`🔧 POST /${table} - Original data:`, data);
+
+
     const columns = Object.keys(data);
-    const values = Object.values(data);
+    const values = Object.values(data).map((value, index) => {
+      const columnName = Object.keys(data)[index];
+
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        return null;
+      }
+
+      // Handle empty strings for date fields - convert to null
+      if (typeof value === 'string' && value === '' &&
+          (columnName.includes('date') || columnName.includes('_at') ||
+           columnName === 'date_of_birth' || columnName === 'join_date')) {
+        return null;
+      }
+
+      // If it's already a string, don't modify it
+      if (typeof value === 'string') {
+        return value;
+      }
+
+      // Handle arrays - check if it should be PostgreSQL array or JSON
+      if (Array.isArray(value)) {
+        // For known array columns that should be PostgreSQL arrays
+        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName.includes('_array')) {
+          // Convert to PostgreSQL array format: {item1,item2}
+          if (value.length === 0) {
+            return '{}';
+          }
+          const pgArray = '{' + value.map(item => `"${item}"`).join(',') + '}';
+          return pgArray;
+        }
+        // For other arrays, use JSON format
+        return JSON.stringify(value);
+      }
+
+      // For objects, use JSON format
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+
+      return value;
+    });
     const placeholders = values.map((_, index) => `$${index + 1}`);
+
 
     const query = `
       INSERT INTO ${table} (${columns.join(', ')})
       VALUES (${placeholders.join(', ')})
       RETURNING *
     `;
+
+    console.log(`🔧 Final SQL for ${table}:`, query);
+    console.log(`🔧 Final values for ${table}:`, values);
 
     const result = await dbClient.query(query, values);
     const transformedData = smartTransform(result.rows[0]);
@@ -308,7 +357,47 @@ app.patch('/api/db/:table/:id', async (req, res) => {
     const data = req.body;
 
     const columns = Object.keys(data);
-    const values = Object.values(data);
+    const values = Object.values(data).map((value, index) => {
+      const columnName = Object.keys(data)[index];
+
+      // Handle null/undefined
+      if (value === null || value === undefined) {
+        return null;
+      }
+
+      // Handle empty strings for date fields - convert to null
+      if (typeof value === 'string' && value === '' &&
+          (columnName.includes('date') || columnName.includes('_at') ||
+           columnName === 'date_of_birth' || columnName === 'join_date')) {
+        return null;
+      }
+
+      // If it's already a string, don't modify it
+      if (typeof value === 'string') {
+        return value;
+      }
+
+      // Handle arrays - check if it should be PostgreSQL array or JSON
+      if (Array.isArray(value)) {
+        // For known array columns that should be PostgreSQL arrays
+        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName.includes('_array')) {
+          // Convert to PostgreSQL array format: {item1,item2}
+          if (value.length === 0) {
+            return '{}';
+          }
+          return '{' + value.map(item => `"${item}"`).join(',') + '}';
+        }
+        // For other arrays, use JSON format
+        return JSON.stringify(value);
+      }
+
+      // For objects, use JSON format
+      if (typeof value === 'object') {
+        return JSON.stringify(value);
+      }
+
+      return value;
+    });
     const setClause = columns.map((col, index) => `${col} = $${index + 1}`);
 
     const query = `
@@ -370,9 +459,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
   console.log(`📁 Storage path: ${process.env.STORAGE_PATH || '/app/storage'}`);
   console.log(`🗄️ Database: ${process.env.DATABASE_URL ? 'configured' : 'not configured'}`);
   console.log(`🔐 Auth0: ${process.env.VITE_AUTH0_DOMAIN ? 'configured' : 'not configured'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });

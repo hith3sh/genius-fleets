@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "NODE_ENV=development node server.js",
+    "dev:full": "rm -rf node_modules/.vite dist && npm run build && concurrently \"npm run dev\" \"npm run dev:server\"",
     "build": "vite build",
     "start": "node server.js",
     "start:railway": "npm run build && npm run start",
@@ -79,6 +81,7 @@
     "@types/react-dom": "^18.2.22",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
     "eslint": "^9.19.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.0.0",

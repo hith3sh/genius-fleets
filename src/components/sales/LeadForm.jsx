@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Lead, UserAccess } from '@/api/entities';
+import { Lead } from '@/api/entities';
+import { UserAccess } from '@/api/supabaseEntities';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

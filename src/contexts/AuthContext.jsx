@@ -22,13 +22,15 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const setupUser = async () => {
       if (auth0User) {
-        // Set user context for RLS
+        // Set user context for RLS (optional in local development)
         try {
           await supabase.rpc('set_current_user_email', {
             email: auth0User.email
           });
+          console.log('✅ RLS user context set successfully');
         } catch (error) {
-          console.warn('Could not set user context for RLS:', error);
+          console.warn('⚠️ Could not set user context for RLS (this is normal in local dev):', error.message);
+          // This is expected in local development if the SQL function isn't installed
         }
 
         // Ensure user_access record exists (for new Auth0 users)
@@ -38,10 +40,10 @@ export function AuthProvider({ children }) {
           console.log('🔍 DEBUG: Supabase methods:', Object.keys(supabase));
           console.log('🔍 DEBUG: From method exists?', typeof supabase.from);
           console.log('🔍 DEBUG: Environment check:', {
-            NODE_ENV: process.env.NODE_ENV,
+            NODE_ENV: import.meta.env.MODE,
             // Don't log actual URLs for security
-            hasRailwayURL: !!process.env.VITE_RAILWAY_DATABASE_URL,
-            hasSupabaseURL: !!process.env.VITE_SUPABASE_URL
+            hasRailwayURL: !!import.meta.env.VITE_RAILWAY_DATABASE_URL,
+            hasSupabaseURL: !!import.meta.env.VITE_SUPABASE_URL
           });
 
           // Simplified approach - get all user_access records and filter manually

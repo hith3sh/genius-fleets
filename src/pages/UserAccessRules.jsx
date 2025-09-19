@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UserAccess } from "@/api/entities";
+import { UserAccess, Employee } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,11 +117,13 @@ export default function UserAccessRules() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [accessRulesData] = await Promise.all([
-        UserAccess.list()
+      const [accessRulesData, employeesData] = await Promise.all([
+        UserAccess.list(),
+        Employee.list()
       ]);
-      setUsers(accessRulesData.filter(u => u.role !== 'Management'));
-      setUserAccessRules(accessRulesData);
+      // Use employees data for the users list (they have name and email)
+      setUsers(employeesData || []);
+      setUserAccessRules(accessRulesData || []);
     } catch (error) {
       console.error("Error loading data:", error);
     }
@@ -206,8 +208,8 @@ export default function UserAccessRules() {
            !isCategoryFullySelected(categoryModules);
   };
 
-  const filteredUsers = users.filter(user => 
-    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -264,11 +266,11 @@ export default function UserAccessRules() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                       <span className="text-white font-semibold text-lg">
-                        {user.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        {user.name?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold">{user.full_name || 'Unknown User'}</h3>
+                      <h3 className="text-lg font-semibold">{user.name || 'Unknown User'}</h3>
                       <p className="text-gray-600">{user.email}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge variant="outline">
@@ -374,7 +376,7 @@ export default function UserAccessRules() {
                       <SelectContent>
                         {users.map((user) => (
                           <SelectItem key={user.id} value={user.email}>
-                            {user.full_name || 'Unknown User'} ({user.email})
+                            {user.name || 'Unknown User'} ({user.email})
                           </SelectItem>
                         ))}
                       </SelectContent>

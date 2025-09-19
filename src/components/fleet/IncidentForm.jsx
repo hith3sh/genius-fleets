@@ -7,14 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, AlertCircle } from 'lucide-react';
 
-export default function IncidentForm({ vehicles, users, incident, onSubmit, onCancel }) {
+export default function IncidentForm({ vehicles = [], users = [], incident, onSubmit, onCancel }) {
   const [formData, setFormData] = useState({
     vehicle_id: '',
     incident_date: '',
     type: '',
     severity: '',
     description: '',
-    responsible_user_id: '',
+    responsible_user_id: 'none',
     status: 'Open',
     photo_urls: []
   });
@@ -37,7 +37,7 @@ export default function IncidentForm({ vehicles, users, incident, onSubmit, onCa
         type: incident.type || '',
         severity: incident.severity || '',
         description: incident.description || '',
-        responsible_user_id: incident.responsible_user_id || '',
+        responsible_user_id: incident.responsible_user_id || 'none',
         status: incident.status || 'Open',
         photo_urls: incident.photo_urls || []
       });
@@ -49,7 +49,7 @@ export default function IncidentForm({ vehicles, users, incident, onSubmit, onCa
         type: '',
         severity: '',
         description: '',
-        responsible_user_id: '',
+        responsible_user_id: 'none',
         status: 'Open',
         photo_urls: []
       });
@@ -85,7 +85,9 @@ export default function IncidentForm({ vehicles, users, incident, onSubmit, onCa
       // Convert the datetime-local value to ISO format
       const submitData = {
         ...formData,
-        incident_date: new Date(formData.incident_date).toISOString()
+        incident_date: new Date(formData.incident_date).toISOString(),
+        // Convert "none" back to empty string for responsible_user_id (TEXT field)
+        responsible_user_id: formData.responsible_user_id === 'none' ? '' : formData.responsible_user_id
       };
 
       console.log('Submitting form data:', submitData);
@@ -171,12 +173,16 @@ export default function IncidentForm({ vehicles, users, incident, onSubmit, onCa
               <SelectValue placeholder="Select responsible user" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={null}>No specific user</SelectItem>
-              {users.map(user => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.full_name || user.email}
-                </SelectItem>
-              ))}
+              <SelectItem value="none">No specific user</SelectItem>
+              {users && users.length > 0 ? (
+                users.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.full_name || user.email}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-users" disabled>No users available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>

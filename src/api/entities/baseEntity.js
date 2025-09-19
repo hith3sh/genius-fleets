@@ -80,7 +80,7 @@ class BaseEntity {
   async create(data) {
     const { data: record, error } = await supabase
       .from(this.tableName)
-      .insert([data])
+      .insert(data)
       .select()
       .single();
     
