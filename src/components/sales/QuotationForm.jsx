@@ -163,12 +163,18 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
       console.log('🆕 Creating new customer:', customerData); // Debug log
       const newCustomer = await Customer.create(customerData);
       console.log('✅ Customer created successfully:', newCustomer); // Debug log
+      console.log('🆔 New customer ID:', newCustomer.id); // Debug log
       
       // Reload customers list
       await loadCustomers(); // Call the specific loadCustomers function
       
       // Select the newly created customer
-      setFormData(prev => ({...prev, customer_id: newCustomer.id}));
+      console.log('🎯 Setting customer_id to:', newCustomer.id); // Debug log
+      setFormData(prev => {
+        const updated = {...prev, customer_id: newCustomer.id};
+        console.log('📝 Updated formData:', updated); // Debug log
+        return updated;
+      });
       
       // Close the new customer form
       setShowNewCustomerForm(false);
@@ -377,16 +383,20 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
               </Button>
             </div>
             <Select 
+              key={`customer-select-${customers.length}`}
               value={formData.customer_id} 
               onValueChange={(value) => {
                 console.log('🎯 Selected customer:', value); // Debug log
+                console.log('📋 Available customers:', customers.map(c => ({ id: c.id, name: c.name }))); // Debug log
                 const selectedCustomer = customers.find(c => c.id === value);
                 console.log('👤 Customer details:', selectedCustomer); // Debug log
                 setFormData({...formData, customer_id: value});
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a customer" />
+                <SelectValue placeholder="Select a customer">
+                  {formData.customer_id && customers.find(c => c.id === formData.customer_id)?.name}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {customers.length === 0 ? (
@@ -558,7 +568,7 @@ export default function QuotationForm({ quotation, onSubmit, onCancel }) {
             <DialogTitle>Add New Customer</DialogTitle>
           </DialogHeader>
           <CustomerForm
-            onSubmit={handleNewCustomerSubmit}
+            onSave={handleNewCustomerSubmit}
             onCancel={() => setShowNewCustomerForm(false)}
           />
         </DialogContent>
