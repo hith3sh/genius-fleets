@@ -111,19 +111,27 @@ class CarImage extends BaseEntity {
       console.log('CarImage.bulkCreate called with:', imageRecords);
       console.log('this.tableName:', this.tableName);
       console.log('supabase object:', supabase);
-      
-      const { data, error } = await supabase
-        .from(this.tableName)
-        .insert(imageRecords)
-        .select();
 
-      if (error) {
-        console.error('Supabase error in bulkCreate:', error);
-        throw error;
+      // Insert each record individually since railway-db client expects single objects
+      const results = [];
+      for (const record of imageRecords) {
+        const { data, error } = await supabase
+          .from(this.tableName)
+          .insert(record)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Supabase error in bulkCreate for record:', record, error);
+          throw error;
+        }
+
+        console.log('Individual insert successful, data:', data);
+        results.push(data);
       }
-      
-      console.log('bulkCreate successful, data:', data);
-      return data;
+
+      console.log('bulkCreate successful, all data:', results);
+      return results;
     } catch (error) {
       console.error('Error bulk creating car images:', error);
       throw error;
