@@ -311,7 +311,7 @@ app.post('/api/db/:table', async (req, res) => {
       // Handle arrays - check if it should be PostgreSQL array or JSON
       if (Array.isArray(value)) {
         // For known array columns that should be PostgreSQL arrays
-        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName.includes('_array')) {
+        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName === 'tags' || columnName === 'accessible_modules' || columnName === 'other_documents' || columnName.includes('_array')) {
           // Convert to PostgreSQL array format: {item1,item2}
           if (value.length === 0) {
             return '{}';
@@ -380,7 +380,7 @@ app.patch('/api/db/:table/:id', async (req, res) => {
       // Handle arrays - check if it should be PostgreSQL array or JSON
       if (Array.isArray(value)) {
         // For known array columns that should be PostgreSQL arrays
-        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName.includes('_array')) {
+        if (columnName === 'vehicle_photos' || columnName === 'photo_urls' || columnName === 'tags' || columnName === 'accessible_modules' || columnName === 'other_documents' || columnName.includes('_array')) {
           // Convert to PostgreSQL array format: {item1,item2}
           if (value.length === 0) {
             return '{}';
